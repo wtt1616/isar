@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(mysqldump:*)",
+      "Bash(isar_db_production.sql)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

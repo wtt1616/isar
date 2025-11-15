@@ -1,0 +1,357 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Navbar from '@/components/Navbar';
+
+export default function AvailabilityPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedPrayers, setSelectedPrayers] = useState<string[]>([]);
+  const [reason, setReason] = useState('');
+  const [availability, setAvailability] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{ type: string; message: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 5;
+
+  const prayerTimes = ['Subuh', 'Zohor', 'Asar', 'Maghrib', 'Isyak'];
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    } else if (session) {
+      const role = (session.user as any).role;
+      if (role !== 'imam' && role !== 'bilal') {
+        router.push('/dashboard');
+      } else {
+        fetchAvailability();
+      }
+    }
+  }, [status, session, router]);
+
+  const fetchAvailability = async () => {
+    if (!session) return;
+
+    const userId = (session.user as any).id;
+    try {
+      const response = await fetch(`/api/availability?user_id=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailability(data);
+      }
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+    }
+  };
+
+  const togglePrayer = (prayer: string) => {
+    setSelectedPrayers(prev =>
+      prev.includes(prayer)
+        ? prev.filter(p => p !== prayer)
+        : [...prev, prayer]
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (!selectedDate) {
+      showAlert('danger', 'Please select a date');
+      setLoading(false);
+      return;
+    }
+
+    if (selectedPrayers.length === 0) {
+      showAlert('danger', 'Please select at least one prayer time');
+      setLoading(false);
+      return;
+    }
+
+    const userId = (session?.user as any).id;
+
+    try {
+      // Submit unavailability for each selected prayer time
+      const promises = selectedPrayers.map(prayer =>
+        fetch('/api/availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            date: selectedDate,
+            prayer_time: prayer,
+            is_available: false,
+            reason: reason,
+          }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const allSuccess = results.every(r => r.ok);
+
+      if (allSuccess) {
+        showAlert('success', `Unavailability marked for ${selectedPrayers.length} prayer time(s) successfully!`);
+        setSelectedDate('');
+        setSelectedPrayers([]);
+        setReason('');
+        setCurrentPage(1); // Reset to first page to show latest entries
+        fetchAvailability();
+      } else {
+        showAlert('danger', 'Some unavailability entries failed to save');
+      }
+    } catch (error) {
+      showAlert('danger', 'Error saving unavailability');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showAlert = (type: string, message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 5000);
+  };
+
+  const handleRemoveUnavailability = async (availabilityId: number) => {
+    if (!confirm('Are you sure you want to remove this unavailability? You will be marked as available for this slot.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/availability/${availabilityId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        showAlert('success', 'Unavailability removed successfully! You are now available for this slot.');
+        setCurrentPage(1); // Reset to first page
+        fetchAvailability();
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to remove unavailability:', errorData);
+        showAlert('danger', errorData.error || 'Failed to remove unavailability');
+      }
+    } catch (error) {
+      console.error('Error removing unavailability:', error);
+      showAlert('danger', 'Error removing unavailability');
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-MY', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  if (status === 'loading' || !session) {
+    return (
+      <div className="loading">
+        <div className="spinner-border text-success" role="status"></div>
+      </div>
+    );
+  }
+
+  // Filter unavailable slots and sort by latest date first
+  const unavailableSlots = availability
+    .filter((a) => !a.is_available)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Calculate pagination
+  const totalPages = Math.ceil(unavailableSlots.length / recordsPerPage);
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = unavailableSlots.slice(indexOfFirstRecord, indexOfLastRecord);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  return (
+    <>
+      <Navbar />
+      <div className="container mt-4">
+        {alert && (
+          <div className={`alert alert-${alert.type} alert-custom`} role="alert">
+            {alert.message}
+          </div>
+        )}
+
+        <h2 className="mb-4">My Availability</h2>
+
+        <div className="row">
+          <div className="col-md-6">
+            <div className="card">
+              <div className="card-header bg-success text-white">
+                <h5 className="mb-0">Mark Unavailability</h5>
+              </div>
+              <div className="card-body">
+                <p className="text-muted">
+                  Use this form to indicate when you cannot be on duty for prayer.
+                </p>
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label htmlFor="date" className="form-label">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">
+                      Prayer Times (Select one or more)
+                    </label>
+                    <div className="border rounded p-3">
+                      {prayerTimes.map((prayer) => (
+                        <div key={prayer} className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`prayer-${prayer}`}
+                            checked={selectedPrayers.includes(prayer)}
+                            onChange={() => togglePrayer(prayer)}
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`prayer-${prayer}`}
+                          >
+                            {prayer}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {selectedPrayers.length > 0 && (
+                      <small className="text-muted">
+                        {selectedPrayers.length} prayer time(s) selected
+                      </small>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label htmlFor="reason" className="form-label">
+                      Reason (Optional)
+                    </label>
+                    <textarea
+                      className="form-control"
+                      id="reason"
+                      rows={3}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="E.g., Out of town, Medical appointment, etc."
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn btn-success w-100"
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : 'Mark as Unavailable'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-6">
+            <div className="card">
+              <div className="card-header bg-info text-white">
+                <h5 className="mb-0">My Unavailable Slots</h5>
+              </div>
+              <div className="card-body">
+                {unavailableSlots.length === 0 ? (
+                  <p className="text-muted">You have no unavailable slots marked.</p>
+                ) : (
+                  <>
+                    <div className="mb-3">
+                      <small className="text-muted">
+                        Showing {indexOfFirstRecord + 1} - {Math.min(indexOfLastRecord, unavailableSlots.length)} of {unavailableSlots.length} unavailable slots
+                      </small>
+                    </div>
+                    <div className="list-group">
+                      {currentRecords.map((slot) => (
+                        <div key={slot.id} className="list-group-item">
+                          <div className="d-flex justify-content-between align-items-start">
+                            <div className="flex-grow-1">
+                              <h6 className="mb-1">{formatDate(slot.date)}</h6>
+                              <p className="mb-1">
+                                <strong>Prayer:</strong> {slot.prayer_time}
+                              </p>
+                              {slot.reason && (
+                                <p className="mb-0 text-muted">
+                                  <small>{slot.reason}</small>
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleRemoveUnavailability(slot.id)}
+                              title="Remove this unavailability and mark as available"
+                            >
+                              <i className="bi bi-trash"></i> Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                      <nav className="mt-3">
+                        <ul className="pagination pagination-sm justify-content-center">
+                          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                            <button
+                              className="page-link"
+                              onClick={() => handlePageChange(currentPage - 1)}
+                              disabled={currentPage === 1}
+                            >
+                              Previous
+                            </button>
+                          </li>
+                          {[...Array(totalPages)].map((_, index) => (
+                            <li
+                              key={index + 1}
+                              className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}
+                            >
+                              <button
+                                className="page-link"
+                                onClick={() => handlePageChange(index + 1)}
+                              >
+                                {index + 1}
+                              </button>
+                            </li>
+                          ))}
+                          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                            <button
+                              className="page-link"
+                              onClick={() => handlePageChange(currentPage + 1)}
+                              disabled={currentPage === totalPages}
+                            >
+                              Next
+                            </button>
+                          </li>
+                        </ul>
+                      </nav>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
