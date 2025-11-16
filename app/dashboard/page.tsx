@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { Schedule } from '@/types';
+import { Schedule, User } from '@/types';
+import { getUserColor } from '@/lib/userColors';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [imams, setImams] = useState<User[]>([]);
+  const [bilals, setBilals] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
 
@@ -55,13 +58,18 @@ export default function DashboardPage() {
     const endDate = formatDateOnly(tuesday);
 
     try {
-      const response = await fetch(
-        `/api/schedules?start_date=${startDate}&end_date=${endDate}`
-      );
-      if (response.ok) {
-        const data = await response.json();
+      const [schedulesRes, imamsRes, bilalsRes] = await Promise.all([
+        fetch(`/api/schedules?start_date=${startDate}&end_date=${endDate}`),
+        fetch('/api/users?role=imam'),
+        fetch('/api/users?role=bilal'),
+      ]);
+
+      if (schedulesRes.ok) {
+        const data = await schedulesRes.json();
         setSchedules(data);
       }
+      if (imamsRes.ok) setImams(await imamsRes.json());
+      if (bilalsRes.ok) setBilals(await bilalsRes.json());
     } catch (error) {
       console.error('Error fetching schedules:', error);
     } finally {
@@ -173,9 +181,85 @@ export default function DashboardPage() {
             No schedule available for this week.
           </div>
         ) : (
-          <div className="card">
-            <div className="card-body">
-              <div className="table-responsive">
+          <>
+            {/* Color Legend with Count */}
+            <div className="card mb-3 no-print">
+              <div className="card-header">
+                <h5 className="mb-0">Color Legend & Weekly Distribution</h5>
+              </div>
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    <h6>Imams</h6>
+                    <div className="d-flex flex-wrap gap-2">
+                      {(() => {
+                        // Count occurrences of each imam
+                        const imamCounts = new Map<number, number>();
+                        schedules.forEach(s => {
+                          imamCounts.set(s.imam_id, (imamCounts.get(s.imam_id) || 0) + 1);
+                        });
+
+                        return Array.from(imamCounts.entries()).map(([imamId, count]) => {
+                          const imam = imams.find(i => i.id === imamId);
+                          if (!imam) return null;
+                          const color = getUserColor(imamId);
+                          return (
+                            <div
+                              key={imamId}
+                              className="px-3 py-2 rounded d-flex align-items-center gap-2"
+                              style={{
+                                backgroundColor: color.bg,
+                                color: color.text,
+                                border: `2px solid ${color.border}`,
+                              }}
+                            >
+                              <span>{imam.name}</span>
+                              <span className="badge bg-dark">{count}x</span>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <h6>Bilals</h6>
+                    <div className="d-flex flex-wrap gap-2">
+                      {(() => {
+                        // Count occurrences of each bilal
+                        const bilalCounts = new Map<number, number>();
+                        schedules.forEach(s => {
+                          bilalCounts.set(s.bilal_id, (bilalCounts.get(s.bilal_id) || 0) + 1);
+                        });
+
+                        return Array.from(bilalCounts.entries()).map(([bilalId, count]) => {
+                          const bilal = bilals.find(b => b.id === bilalId);
+                          if (!bilal) return null;
+                          const color = getUserColor(bilalId);
+                          return (
+                            <div
+                              key={bilalId}
+                              className="px-3 py-2 rounded d-flex align-items-center gap-2"
+                              style={{
+                                backgroundColor: color.bg,
+                                color: color.text,
+                                border: `2px solid ${color.border}`,
+                              }}
+                            >
+                              <span>{bilal.name}</span>
+                              <span className="badge bg-dark">{count}x</span>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-body">
+                <div className="table-responsive">
                 <table className="table table-bordered prayer-schedule-table">
                   <thead>
                     <tr>
@@ -195,10 +279,24 @@ export default function DashboardPage() {
                             <td key={`${date}-${prayer}`}>
                               {schedule ? (
                                 <div>
-                                  <div>
+                                  <div
+                                    className="mb-2 p-2 rounded"
+                                    style={{
+                                      backgroundColor: getUserColor(schedule.imam_id).bg,
+                                      color: getUserColor(schedule.imam_id).text,
+                                      border: `2px solid ${getUserColor(schedule.imam_id).border}`,
+                                    }}
+                                  >
                                     <strong>Imam:</strong> {schedule.imam_name}
                                   </div>
-                                  <div>
+                                  <div
+                                    className="mb-2 p-2 rounded"
+                                    style={{
+                                      backgroundColor: getUserColor(schedule.bilal_id).bg,
+                                      color: getUserColor(schedule.bilal_id).text,
+                                      border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
+                                    }}
+                                  >
                                     <strong>Bilal:</strong> {schedule.bilal_name}
                                   </div>
                                 </div>
@@ -215,6 +313,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </>

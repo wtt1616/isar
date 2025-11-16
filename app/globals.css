@@ -96,6 +96,21 @@ body {
     font-size: 12px !important;
     margin-bottom: 10px !important;
   }
+
+  /* Ensure colored boxes print correctly */
+  .rounded {
+    border: 2px solid !important;
+  }
+
+  /* Hide color legend when printing */
+  .card-header,
+  .btn {
+    display: none !important;
+  }
+
+  .card-body {
+    padding: 5px !important;
+  }
 }
 
 .loading {

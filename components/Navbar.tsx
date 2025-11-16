@@ -72,15 +72,35 @@ export default function Navbar() {
           </ul>
 
           <div className="d-flex align-items-center">
-            <span className="navbar-text me-3 text-white">
-              {session.user?.name} ({userRole})
-            </span>
-            <button
-              className="btn btn-outline-light btn-sm"
-              onClick={() => signOut({ callbackUrl: '/login' })}
-            >
-              Logout
-            </button>
+            <div className="dropdown">
+              <button
+                className="btn btn-outline-light btn-sm dropdown-toggle"
+                type="button"
+                id="userDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                {session.user?.name} ({userRole})
+              </button>
+              <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li>
+                  <Link className="dropdown-item" href="/dashboard/profile">
+                    <i className="bi bi-person-circle me-2"></i>
+                    My Profile
+                  </Link>
+                </li>
+                <li><hr className="dropdown-divider" /></li>
+                <li>
+                  <button
+                    className="dropdown-item text-danger"
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                  >
+                    <i className="bi bi-box-arrow-right me-2"></i>
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

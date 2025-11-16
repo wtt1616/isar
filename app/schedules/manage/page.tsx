@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { Schedule, User } from '@/types';
+import { getUserColor } from '@/lib/userColors';
 
 export default function ManageSchedulePage() {
   const { data: session, status } = useSession();
@@ -300,9 +301,87 @@ export default function ManageSchedulePage() {
             <div className="spinner-border text-success" role="status"></div>
           </div>
         ) : (
-          <div className="card">
-            <div className="card-body">
-              <div className="table-responsive">
+          <>
+            {/* Color Legend with Count */}
+            {schedules.length > 0 && (
+              <div className="card mb-3">
+                <div className="card-header">
+                  <h5 className="mb-0">Color Legend & Weekly Distribution</h5>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <h6>Imams</h6>
+                      <div className="d-flex flex-wrap gap-2">
+                        {(() => {
+                          // Count occurrences of each imam
+                          const imamCounts = new Map<number, number>();
+                          schedules.forEach(s => {
+                            imamCounts.set(s.imam_id, (imamCounts.get(s.imam_id) || 0) + 1);
+                          });
+
+                          return Array.from(imamCounts.entries()).map(([imamId, count]) => {
+                            const imam = imams.find(i => i.id === imamId);
+                            if (!imam) return null;
+                            const color = getUserColor(imamId);
+                            return (
+                              <div
+                                key={imamId}
+                                className="px-3 py-2 rounded d-flex align-items-center gap-2"
+                                style={{
+                                  backgroundColor: color.bg,
+                                  color: color.text,
+                                  border: `2px solid ${color.border}`,
+                                }}
+                              >
+                                <span>{imam.name}</span>
+                                <span className="badge bg-dark">{count}x</span>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <h6>Bilals</h6>
+                      <div className="d-flex flex-wrap gap-2">
+                        {(() => {
+                          // Count occurrences of each bilal
+                          const bilalCounts = new Map<number, number>();
+                          schedules.forEach(s => {
+                            bilalCounts.set(s.bilal_id, (bilalCounts.get(s.bilal_id) || 0) + 1);
+                          });
+
+                          return Array.from(bilalCounts.entries()).map(([bilalId, count]) => {
+                            const bilal = bilals.find(b => b.id === bilalId);
+                            if (!bilal) return null;
+                            const color = getUserColor(bilalId);
+                            return (
+                              <div
+                                key={bilalId}
+                                className="px-3 py-2 rounded d-flex align-items-center gap-2"
+                                style={{
+                                  backgroundColor: color.bg,
+                                  color: color.text,
+                                  border: `2px solid ${color.border}`,
+                                }}
+                              >
+                                <span>{bilal.name}</span>
+                                <span className="badge bg-dark">{count}x</span>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="card">
+              <div className="card-body">
+                <div className="table-responsive">
                 <table className="table table-bordered prayer-schedule-table">
                   <thead>
                     <tr>
@@ -380,10 +459,24 @@ export default function ManageSchedulePage() {
                                   </div>
                                 ) : (
                                   <div>
-                                    <div>
+                                    <div
+                                      className="mb-2 p-2 rounded"
+                                      style={{
+                                        backgroundColor: getUserColor(schedule.imam_id).bg,
+                                        color: getUserColor(schedule.imam_id).text,
+                                        border: `2px solid ${getUserColor(schedule.imam_id).border}`,
+                                      }}
+                                    >
                                       <strong>Imam:</strong> {schedule.imam_name}
                                     </div>
-                                    <div>
+                                    <div
+                                      className="mb-2 p-2 rounded"
+                                      style={{
+                                        backgroundColor: getUserColor(schedule.bilal_id).bg,
+                                        color: getUserColor(schedule.bilal_id).text,
+                                        border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
+                                      }}
+                                    >
                                       <strong>Bilal:</strong> {schedule.bilal_name}
                                     </div>
                                     <button
@@ -409,6 +502,7 @@ export default function ManageSchedulePage() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </>
