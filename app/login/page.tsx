@@ -99,19 +99,7 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              <div className="mt-4 text-center">
-                <small className="text-muted">
-                  <strong>Default Credentials:</strong>
-                  <br />
-                  Admin: admin@isar.com / admin123
-                  <br />
-                  Head Imam: headimam@isar.com / admin123
-                  <br />
-                  Imam: imam1@isar.com / admin123
-                  <br />
-                  Bilal: bilal1@isar.com / admin123
-                </small>
-              </div>
+              {/* Default credentials removed from UI for security */}
             </div>
           </div>
         </div>
