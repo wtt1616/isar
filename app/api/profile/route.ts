@@ -5,6 +5,10 @@ import pool from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { RowDataPacket } from 'mysql2';
 
+// This route uses server-side session information (headers/cookies).
+// Prevent Next from attempting to statically render it during build.
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch user profile
 export async function GET() {
   try {
