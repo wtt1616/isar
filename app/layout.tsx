@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Prayer schedule management system for mosques and surau',
 };
 
+// Force server rendering for the app to avoid static prerender errors
+export const dynamic = 'force-dynamic';
 export default function RootLayout({
   children,
 }: {

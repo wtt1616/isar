@@ -52,19 +52,24 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}>
+                {/* Hidden fields to reduce browser autofill of saved credentials */}
+                <input type="text" name="fake-username" autoComplete="username" style={{ display: 'none' }} />
+                <input type="password" name="fake-password" autoComplete="new-password" style={{ display: 'none' }} />
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label">
                     Email Address
                   </label>
                   <input
                     type="email"
+                    name="email"
                     className="form-control"
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
+                    autoComplete="off"
                   />
                 </div>
 
@@ -74,12 +79,14 @@ export default function LoginPage() {
                   </label>
                   <input
                     type="password"
+                    name="password"
                     className="form-control"
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={loading}
+                    autoComplete="new-password"
                   />
                 </div>
 
