@@ -14,6 +14,7 @@ interface Schedule {
   schedule_date: string;
   subuh_preacher_id: number | null;
   maghrib_preacher_id: number | null;
+  friday_preacher_id: number | null;
   notes: string;
 }
 
@@ -23,6 +24,7 @@ interface CalendarDay {
   isCurrentMonth: boolean;
   subuh_preacher_id: number | null;
   maghrib_preacher_id: number | null;
+  friday_preacher_id: number | null;
   notes: string;
 }
 
@@ -86,6 +88,7 @@ export default function PreacherSchedulesPage() {
             schedule_date: schedule.schedule_date,
             subuh_preacher_id: schedule.subuh_preacher_id,
             maghrib_preacher_id: schedule.maghrib_preacher_id,
+            friday_preacher_id: schedule.friday_preacher_id,
             notes: schedule.notes || ''
           });
         });
@@ -118,6 +121,7 @@ export default function PreacherSchedulesPage() {
         isCurrentMonth,
         subuh_preacher_id: null,
         maghrib_preacher_id: null,
+        friday_preacher_id: null,
         notes: ''
       });
 
@@ -137,7 +141,7 @@ export default function PreacherSchedulesPage() {
 
   const handlePreacherChange = (
     dateString: string,
-    type: 'subuh' | 'maghrib',
+    type: 'subuh' | 'maghrib' | 'friday',
     preacherId: number | null
   ) => {
     const newSchedules = new Map(schedules);
@@ -145,13 +149,16 @@ export default function PreacherSchedulesPage() {
       schedule_date: dateString,
       subuh_preacher_id: null,
       maghrib_preacher_id: null,
+      friday_preacher_id: null,
       notes: ''
     };
 
     if (type === 'subuh') {
       existing.subuh_preacher_id = preacherId;
-    } else {
+    } else if (type === 'maghrib') {
       existing.maghrib_preacher_id = preacherId;
+    } else if (type === 'friday') {
+      existing.friday_preacher_id = preacherId;
     }
 
     newSchedules.set(dateString, existing);
@@ -170,7 +177,7 @@ export default function PreacherSchedulesPage() {
 
     try {
       const schedulesArray = Array.from(schedules.values()).filter(
-        (schedule) => schedule.subuh_preacher_id || schedule.maghrib_preacher_id
+        (schedule) => schedule.subuh_preacher_id || schedule.maghrib_preacher_id || schedule.friday_preacher_id
       );
 
       const response = await fetch('/api/preacher-schedules', {
@@ -301,64 +308,113 @@ export default function PreacherSchedulesPage() {
                             <div className="day-number">
                               {dayData.date.getDate()}
                             </div>
-                            {dayData.isCurrentMonth && (
-                              <div className="preacher-slots">
-                                <div className="slot mb-2">
-                                  <small className="text-muted d-block">Subuh</small>
-                                  {isHeadImam ? (
-                                    <select
-                                      className="form-select form-select-sm"
-                                      value={schedule?.subuh_preacher_id || ''}
-                                      onChange={(e) =>
-                                        handlePreacherChange(
-                                          dayData.dateString,
-                                          'subuh',
-                                          e.target.value ? parseInt(e.target.value) : null
-                                        )
-                                      }
-                                    >
-                                      <option value="">-</option>
-                                      {preachers.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                          {p.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  ) : (
-                                    <div className="small">
-                                      {getPreacherName(schedule?.subuh_preacher_id || null)}
+                            {dayData.isCurrentMonth && (() => {
+                              const dayOfWeek = dayData.date.getDay(); // 0=Sunday, 1=Monday, 4=Thursday, 5=Friday
+
+                              // Monday (1) and Thursday (4) - No preaching
+                              if (dayOfWeek === 1 || dayOfWeek === 4) {
+                                return (
+                                  <div className="preacher-slots text-center">
+                                    <small className="text-muted">No Preaching</small>
+                                  </div>
+                                );
+                              }
+
+                              // Friday (5) - Only Friday Preach
+                              if (dayOfWeek === 5) {
+                                return (
+                                  <div className="preacher-slots">
+                                    <div className="slot">
+                                      <small className="text-muted d-block">Friday Preach</small>
+                                      {isHeadImam ? (
+                                        <select
+                                          className="form-select form-select-sm"
+                                          value={schedule?.friday_preacher_id || ''}
+                                          onChange={(e) =>
+                                            handlePreacherChange(
+                                              dayData.dateString,
+                                              'friday',
+                                              e.target.value ? parseInt(e.target.value) : null
+                                            )
+                                          }
+                                        >
+                                          <option value="">-</option>
+                                          {preachers.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                              {p.name}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <div className="small">
+                                          {getPreacherName(schedule?.friday_preacher_id || null)}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
+                                );
+                              }
+
+                              // Other days - Subuh and Maghrib
+                              return (
+                                <div className="preacher-slots">
+                                  <div className="slot mb-2">
+                                    <small className="text-muted d-block">Subuh</small>
+                                    {isHeadImam ? (
+                                      <select
+                                        className="form-select form-select-sm"
+                                        value={schedule?.subuh_preacher_id || ''}
+                                        onChange={(e) =>
+                                          handlePreacherChange(
+                                            dayData.dateString,
+                                            'subuh',
+                                            e.target.value ? parseInt(e.target.value) : null
+                                          )
+                                        }
+                                      >
+                                        <option value="">-</option>
+                                        {preachers.map((p) => (
+                                          <option key={p.id} value={p.id}>
+                                            {p.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    ) : (
+                                      <div className="small">
+                                        {getPreacherName(schedule?.subuh_preacher_id || null)}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="slot">
+                                    <small className="text-muted d-block">Maghrib</small>
+                                    {isHeadImam ? (
+                                      <select
+                                        className="form-select form-select-sm"
+                                        value={schedule?.maghrib_preacher_id || ''}
+                                        onChange={(e) =>
+                                          handlePreacherChange(
+                                            dayData.dateString,
+                                            'maghrib',
+                                            e.target.value ? parseInt(e.target.value) : null
+                                          )
+                                        }
+                                      >
+                                        <option value="">-</option>
+                                        {preachers.map((p) => (
+                                          <option key={p.id} value={p.id}>
+                                            {p.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    ) : (
+                                      <div className="small">
+                                        {getPreacherName(schedule?.maghrib_preacher_id || null)}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="slot">
-                                  <small className="text-muted d-block">Maghrib</small>
-                                  {isHeadImam ? (
-                                    <select
-                                      className="form-select form-select-sm"
-                                      value={schedule?.maghrib_preacher_id || ''}
-                                      onChange={(e) =>
-                                        handlePreacherChange(
-                                          dayData.dateString,
-                                          'maghrib',
-                                          e.target.value ? parseInt(e.target.value) : null
-                                        )
-                                      }
-                                    >
-                                      <option value="">-</option>
-                                      {preachers.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                          {p.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  ) : (
-                                    <div className="small">
-                                      {getPreacherName(schedule?.maghrib_preacher_id || null)}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                              );
+                            })()}
                           </td>
                         );
                       })}
@@ -374,8 +430,7 @@ export default function PreacherSchedulesPage() {
                   <tr>
                     <th>Date</th>
                     <th>Day</th>
-                    <th>Subuh Preacher</th>
-                    <th>Maghrib Preacher</th>
+                    <th>Preaching Schedule</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -385,58 +440,112 @@ export default function PreacherSchedulesPage() {
                       const schedule = schedules.get(day.dateString);
                       const isHeadImam = session?.user?.role === 'head_imam';
                       const dayName = day.date.toLocaleDateString('en-US', { weekday: 'long' });
+                      const dayOfWeek = day.date.getDay();
 
+                      // Monday (1) and Thursday (4) - No preaching
+                      if (dayOfWeek === 1 || dayOfWeek === 4) {
+                        return (
+                          <tr key={day.dateString} className="table-secondary">
+                            <td>{day.date.getDate()}</td>
+                            <td>{dayName}</td>
+                            <td className="text-muted">No Preaching</td>
+                          </tr>
+                        );
+                      }
+
+                      // Friday (5) - Only Friday Preach
+                      if (dayOfWeek === 5) {
+                        return (
+                          <tr key={day.dateString}>
+                            <td>{day.date.getDate()}</td>
+                            <td>{dayName}</td>
+                            <td>
+                              <div>
+                                <strong>Friday Preach:</strong>{' '}
+                                {isHeadImam ? (
+                                  <select
+                                    className="form-select d-inline-block w-auto"
+                                    value={schedule?.friday_preacher_id || ''}
+                                    onChange={(e) =>
+                                      handlePreacherChange(
+                                        day.dateString,
+                                        'friday',
+                                        e.target.value ? parseInt(e.target.value) : null
+                                      )
+                                    }
+                                  >
+                                    <option value="">-</option>
+                                    {preachers.map((p) => (
+                                      <option key={p.id} value={p.id}>
+                                        {p.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  getPreacherName(schedule?.friday_preacher_id || null)
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      // Other days - Subuh and Maghrib
                       return (
                         <tr key={day.dateString}>
                           <td>{day.date.getDate()}</td>
                           <td>{dayName}</td>
                           <td>
-                            {isHeadImam ? (
-                              <select
-                                className="form-select"
-                                value={schedule?.subuh_preacher_id || ''}
-                                onChange={(e) =>
-                                  handlePreacherChange(
-                                    day.dateString,
-                                    'subuh',
-                                    e.target.value ? parseInt(e.target.value) : null
-                                  )
-                                }
-                              >
-                                <option value="">-</option>
-                                {preachers.map((p) => (
-                                  <option key={p.id} value={p.id}>
-                                    {p.name}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              getPreacherName(schedule?.subuh_preacher_id || null)
-                            )}
-                          </td>
-                          <td>
-                            {isHeadImam ? (
-                              <select
-                                className="form-select"
-                                value={schedule?.maghrib_preacher_id || ''}
-                                onChange={(e) =>
-                                  handlePreacherChange(
-                                    day.dateString,
-                                    'maghrib',
-                                    e.target.value ? parseInt(e.target.value) : null
-                                  )
-                                }
-                              >
-                                <option value="">-</option>
-                                {preachers.map((p) => (
-                                  <option key={p.id} value={p.id}>
-                                    {p.name}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              getPreacherName(schedule?.maghrib_preacher_id || null)
-                            )}
+                            <div className="mb-2">
+                              <strong>Subuh:</strong>{' '}
+                              {isHeadImam ? (
+                                <select
+                                  className="form-select d-inline-block w-auto"
+                                  value={schedule?.subuh_preacher_id || ''}
+                                  onChange={(e) =>
+                                    handlePreacherChange(
+                                      day.dateString,
+                                      'subuh',
+                                      e.target.value ? parseInt(e.target.value) : null
+                                    )
+                                  }
+                                >
+                                  <option value="">-</option>
+                                  {preachers.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                getPreacherName(schedule?.subuh_preacher_id || null)
+                              )}
+                            </div>
+                            <div>
+                              <strong>Maghrib:</strong>{' '}
+                              {isHeadImam ? (
+                                <select
+                                  className="form-select d-inline-block w-auto"
+                                  value={schedule?.maghrib_preacher_id || ''}
+                                  onChange={(e) =>
+                                    handlePreacherChange(
+                                      day.dateString,
+                                      'maghrib',
+                                      e.target.value ? parseInt(e.target.value) : null
+                                    )
+                                  }
+                                >
+                                  <option value="">-</option>
+                                  {preachers.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                getPreacherName(schedule?.maghrib_preacher_id || null)
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );

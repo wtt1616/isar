@@ -26,13 +26,16 @@ export async function GET(request: NextRequest) {
         ps.notes,
         ps.subuh_preacher_id,
         ps.maghrib_preacher_id,
+        ps.friday_preacher_id,
         sp.name as subuh_preacher_name,
         mp.name as maghrib_preacher_name,
+        fp.name as friday_preacher_name,
         ps.created_at,
         ps.updated_at
       FROM preacher_schedules ps
       LEFT JOIN preachers sp ON ps.subuh_preacher_id = sp.id
       LEFT JOIN preachers mp ON ps.maghrib_preacher_id = mp.id
+      LEFT JOIN preachers fp ON ps.friday_preacher_id = fp.id
     `;
 
     const params: any[] = [];
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest) {
       await connection.beginTransaction();
 
       for (const schedule of schedules) {
-        const { schedule_date, subuh_preacher_id, maghrib_preacher_id, notes } = schedule;
+        const { schedule_date, subuh_preacher_id, maghrib_preacher_id, friday_preacher_id, notes } = schedule;
 
         // Check if schedule already exists for this date
         const [existing] = await connection.query<RowDataPacket[]>(
@@ -116,20 +119,21 @@ export async function POST(request: NextRequest) {
           // Update existing schedule
           await connection.query(
             `UPDATE preacher_schedules
-             SET subuh_preacher_id = ?, maghrib_preacher_id = ?, notes = ?
+             SET subuh_preacher_id = ?, maghrib_preacher_id = ?, friday_preacher_id = ?, notes = ?
              WHERE schedule_date = ?`,
-            [subuh_preacher_id || null, maghrib_preacher_id || null, notes || null, schedule_date]
+            [subuh_preacher_id || null, maghrib_preacher_id || null, friday_preacher_id || null, notes || null, schedule_date]
           );
         } else {
           // Insert new schedule
           await connection.query(
             `INSERT INTO preacher_schedules
-             (schedule_date, subuh_preacher_id, maghrib_preacher_id, notes, created_by)
-             VALUES (?, ?, ?, ?, ?)`,
+             (schedule_date, subuh_preacher_id, maghrib_preacher_id, friday_preacher_id, notes, created_by)
+             VALUES (?, ?, ?, ?, ?, ?)`,
             [
               schedule_date,
               subuh_preacher_id || null,
               maghrib_preacher_id || null,
+              friday_preacher_id || null,
               notes || null,
               userId
             ]
