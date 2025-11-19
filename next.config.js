@@ -148,6 +148,9 @@ const nextConfig = {
   // Disable static optimization for authenticated pages
   experimental: {
     missingSuspenseWithCSRBailout: false,
+    // Reduce worker threads to avoid Jest worker errors on production
+    workerThreads: false,
+    cpus: 1,
   },
   // Suppress build errors for pages that need dynamic rendering
   typescript: {
@@ -155,6 +158,12 @@ const nextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: false,
+  },
+  // Optimize production builds
+  swcMinify: true,
+  // Reduce memory usage during build
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
   },
 }
 
