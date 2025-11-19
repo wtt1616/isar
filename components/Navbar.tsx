@@ -48,6 +48,15 @@ export default function Navbar() {
               </li>
             )}
 
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${pathname === '/preacher-schedules' ? 'active' : ''}`}
+                href="/preacher-schedules"
+              >
+                Preacher Schedules
+              </Link>
+            </li>
+
             {(userRole === 'imam' || userRole === 'bilal') && (
               <li className="nav-item">
                 <Link
@@ -60,14 +69,24 @@ export default function Navbar() {
             )}
 
             {userRole === 'admin' && (
-              <li className="nav-item">
-                <Link
-                  className={`nav-link ${pathname === '/users' ? 'active' : ''}`}
-                  href="/users"
-                >
-                  Manage Users
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname === '/users' ? 'active' : ''}`}
+                    href="/users"
+                  >
+                    Manage Users
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname === '/preachers/manage' ? 'active' : ''}`}
+                    href="/preachers/manage"
+                  >
+                    Manage Preachers
+                  </Link>
+                </li>
+              </>
             )}
           </ul>
 
