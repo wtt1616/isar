@@ -159,6 +159,57 @@ export default function ManageSchedulePage() {
     }
   };
 
+  const saveAllEdits = async () => {
+    // Collect all schedules in edit mode
+    const editedScheduleIds = Object.keys(editMode).filter(id => editMode[id]);
+
+    if (editedScheduleIds.length === 0) {
+      showAlert('warning', 'No schedules to save');
+      return;
+    }
+
+    // Build updates array
+    const updates = editedScheduleIds.map(id => ({
+      id: parseInt(id),
+      imam_id: editValues[id].imam_id,
+      bilal_id: editValues[id].bilal_id,
+    }));
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/schedules/batch', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        showAlert('success', result.message || `Successfully saved ${updates.length} schedules!`);
+
+        // Clear all edit modes
+        setEditMode({});
+        setEditValues({});
+
+        // Refresh data
+        fetchData();
+      } else {
+        const error = await response.json();
+        showAlert('danger', error.error || 'Failed to save schedules');
+      }
+    } catch (error) {
+      console.error('Error saving schedules:', error);
+      showAlert('danger', 'Error saving schedules');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelAllEdits = () => {
+    setEditMode({});
+    setEditValues({});
+  };
+
   const deleteWeekSchedules = async () => {
     if (schedules.length === 0) {
       showAlert('warning', 'No schedules to delete for this week');
@@ -282,6 +333,23 @@ export default function ManageSchedulePage() {
             )}
           </div>
         </div>
+
+        {/* Batch Edit Actions */}
+        {Object.keys(editMode).some(id => editMode[id]) && (
+          <div className="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+            <span>
+              <strong>{Object.keys(editMode).filter(id => editMode[id]).length}</strong> schedule(s) in edit mode
+            </span>
+            <div>
+              <button className="btn btn-primary me-2" onClick={saveAllEdits}>
+                Save All Changes
+              </button>
+              <button className="btn btn-secondary" onClick={cancelAllEdits}>
+                Cancel All
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="card mb-4">
           <div className="card-body">
@@ -448,17 +516,14 @@ export default function ManageSchedulePage() {
                                       ))}
                                     </select>
                                     <button
-                                      className="btn btn-sm btn-success me-1"
-                                      onClick={() => saveEdit(schedule.id)}
-                                    >
-                                      Save
-                                    </button>
-                                    <button
-                                      className="btn btn-sm btn-secondary"
+                                      className="btn btn-sm btn-secondary btn-sm w-100"
                                       onClick={() => cancelEdit(schedule.id)}
                                     >
                                       Cancel
                                     </button>
+                                    <small className="text-muted d-block mt-1">
+                                      Click "Save All Changes" to save
+                                    </small>
                                   </div>
                                 ) : (
                                   <div>
