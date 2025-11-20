@@ -83,6 +83,7 @@ export default function ManageSchedulePage() {
 
       if (unavailabilityRes.ok) {
         const unavailabilityData = await unavailabilityRes.json();
+        console.log('Unavailability data fetched:', unavailabilityData);
         // Build a map: "date_prayerTime" -> Set of unavailable user IDs
         const unavailMap = new Map<string, Set<number>>();
         unavailabilityData.forEach((item: any) => {
@@ -91,8 +92,10 @@ export default function ManageSchedulePage() {
             unavailMap.set(key, new Set());
           }
           unavailMap.get(key)!.add(item.user_id);
+          console.log(`Marked user ${item.user_id} (${item.user_name}) as unavailable for ${key}`);
         });
         setUnavailability(unavailMap);
+        console.log('Unavailability map:', unavailMap);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -234,7 +237,13 @@ export default function ManageSchedulePage() {
     const key = `${date}_${prayerTime}`;
     const unavailableIds = unavailability.get(key) || new Set();
     const users = role === 'imam' ? imams : bilals;
-    return users.filter(user => !unavailableIds.has(user.id));
+    const availableUsers = users.filter(user => !unavailableIds.has(user.id));
+    console.log(`getAvailableUsers for ${key} (${role}):`, {
+      allUsers: users.map(u => `${u.id}:${u.name}`),
+      unavailableIds: Array.from(unavailableIds),
+      availableUsers: availableUsers.map(u => `${u.id}:${u.name}`)
+    });
+    return availableUsers;
   };
 
   if (status === 'loading' || !session) {

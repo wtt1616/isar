@@ -50,7 +50,16 @@ export async function GET(request: NextRequest) {
     query += ' ORDER BY a.date, a.prayer_time';
 
     const [rows] = await pool.execute<RowDataPacket[]>(query, params);
-    return NextResponse.json(rows);
+
+    // Format dates to prevent timezone conversion issues
+    const formattedRows = rows.map(row => ({
+      ...row,
+      date: row.date instanceof Date
+        ? row.date.toISOString().split('T')[0]
+        : row.date
+    }));
+
+    return NextResponse.json(formattedRows);
   } catch (error) {
     console.error('Error fetching availability:', error);
     return NextResponse.json({ error: 'Failed to fetch availability' }, { status: 500 });
