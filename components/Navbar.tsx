@@ -112,7 +112,18 @@ export default function Navbar() {
                 <li>
                   <button
                     className="dropdown-item text-danger"
-                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    onClick={async () => {
+                      console.log('Logout button clicked');
+                      try {
+                        // Sign out without redirect, then manually redirect
+                        await signOut({ redirect: false });
+                        console.log('SignOut completed, redirecting...');
+                        // Use window.location to redirect to login on same host/port
+                        window.location.href = '/login';
+                      } catch (error) {
+                        console.error('Logout error:', error);
+                      }
+                    }}
                   >
                     <i className="bi bi-box-arrow-right me-2"></i>
                     Logout
