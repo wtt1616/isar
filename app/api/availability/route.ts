@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
 
   try {
     let query = `
-      SELECT a.*, u.name as user_name
+      SELECT a.id, a.user_id, DATE_FORMAT(a.date, '%Y-%m-%d') as date,
+             a.prayer_time, a.is_available, a.reason,
+             a.created_at, a.updated_at, u.name as user_name
       FROM availability a
       JOIN users u ON a.user_id = u.id
       WHERE 1=1
@@ -50,16 +52,7 @@ export async function GET(request: NextRequest) {
     query += ' ORDER BY a.date, a.prayer_time';
 
     const [rows] = await pool.execute<RowDataPacket[]>(query, params);
-
-    // Format dates to prevent timezone conversion issues
-    const formattedRows = rows.map(row => ({
-      ...row,
-      date: row.date instanceof Date
-        ? row.date.toISOString().split('T')[0]
-        : row.date
-    }));
-
-    return NextResponse.json(formattedRows);
+    return NextResponse.json(rows);
   } catch (error) {
     console.error('Error fetching availability:', error);
     return NextResponse.json({ error: 'Failed to fetch availability' }, { status: 500 });
