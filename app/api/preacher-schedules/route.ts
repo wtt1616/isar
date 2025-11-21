@@ -7,11 +7,11 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2';
 // GET - Fetch preacher schedules for a specific month or date range
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Allow public access to view preacher schedules (no authentication required for GET)
+    // const session = await getServerSession(authOptions);
+    // if (!session || !session.user) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year');

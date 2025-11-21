@@ -5,11 +5,11 @@ import pool from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Allow public access to view schedules (no authentication required for GET)
+  // const session = await getServerSession(authOptions);
+  // if (!session) {
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   const { searchParams } = new URL(request.url);
   const weekNumber = searchParams.get('week_number');
