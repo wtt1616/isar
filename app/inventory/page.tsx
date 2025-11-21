@@ -47,7 +47,7 @@ export default function InventoryPage() {
       }
     } catch (error) {
       console.error('Error fetching inventory:', error);
-      showAlert('danger', 'Error fetching inventory');
+      showAlertMessage('danger', 'Error fetching inventory');
     } finally {
       setLoading(false);
     }
