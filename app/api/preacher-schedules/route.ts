@@ -25,15 +25,22 @@ export async function GET(request: NextRequest) {
         ps.schedule_date,
         ps.notes,
         ps.subuh_preacher_id,
+        ps.dhuha_preacher_id,
         ps.maghrib_preacher_id,
         ps.friday_preacher_id,
         sp.name as subuh_preacher_name,
+        sp.photo as subuh_preacher_photo,
+        dp.name as dhuha_preacher_name,
+        dp.photo as dhuha_preacher_photo,
         mp.name as maghrib_preacher_name,
+        mp.photo as maghrib_preacher_photo,
         fp.name as friday_preacher_name,
+        fp.photo as friday_preacher_photo,
         ps.created_at,
         ps.updated_at
       FROM preacher_schedules ps
       LEFT JOIN preachers sp ON ps.subuh_preacher_id = sp.id
+      LEFT JOIN preachers dp ON ps.dhuha_preacher_id = dp.id
       LEFT JOIN preachers mp ON ps.maghrib_preacher_id = mp.id
       LEFT JOIN preachers fp ON ps.friday_preacher_id = fp.id
     `;
@@ -57,7 +64,23 @@ export async function GET(request: NextRequest) {
 
     const [schedules] = await pool.query<RowDataPacket[]>(query, params);
 
-    return NextResponse.json({ schedules });
+    // Format dates to YYYY-MM-DD strings to avoid timezone issues
+    const formattedSchedules = schedules.map(schedule => {
+      // Convert Date object to YYYY-MM-DD string
+      // Use local timezone methods because MySQL stores dates without timezone
+      const dateObj = new Date(schedule.schedule_date);
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      return {
+        ...schedule,
+        schedule_date: dateStr
+      };
+    });
+
+    return NextResponse.json({ schedules: formattedSchedules });
   } catch (error) {
     console.error('Error fetching preacher schedules:', error);
     return NextResponse.json(
@@ -91,8 +114,6 @@ export async function POST(request: NextRequest) {
 
     const { schedules } = await request.json();
 
-    console.log('Received schedules:', schedules);
-
     if (!Array.isArray(schedules) || schedules.length === 0) {
       return NextResponse.json(
         { error: 'Schedules array is required' },
@@ -107,7 +128,7 @@ export async function POST(request: NextRequest) {
       await connection.beginTransaction();
 
       for (const schedule of schedules) {
-        const { schedule_date, subuh_preacher_id, maghrib_preacher_id, friday_preacher_id, notes } = schedule;
+        const { schedule_date, subuh_preacher_id, dhuha_preacher_id, maghrib_preacher_id, friday_preacher_id, notes } = schedule;
 
         // Check if schedule already exists for this date
         const [existing] = await connection.query<RowDataPacket[]>(
@@ -119,19 +140,20 @@ export async function POST(request: NextRequest) {
           // Update existing schedule
           await connection.query(
             `UPDATE preacher_schedules
-             SET subuh_preacher_id = ?, maghrib_preacher_id = ?, friday_preacher_id = ?, notes = ?
+             SET subuh_preacher_id = ?, dhuha_preacher_id = ?, maghrib_preacher_id = ?, friday_preacher_id = ?, notes = ?
              WHERE schedule_date = ?`,
-            [subuh_preacher_id || null, maghrib_preacher_id || null, friday_preacher_id || null, notes || null, schedule_date]
+            [subuh_preacher_id || null, dhuha_preacher_id || null, maghrib_preacher_id || null, friday_preacher_id || null, notes || null, schedule_date]
           );
         } else {
           // Insert new schedule
           await connection.query(
             `INSERT INTO preacher_schedules
-             (schedule_date, subuh_preacher_id, maghrib_preacher_id, friday_preacher_id, notes, created_by)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+             (schedule_date, subuh_preacher_id, dhuha_preacher_id, maghrib_preacher_id, friday_preacher_id, notes, created_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
               schedule_date,
               subuh_preacher_id || null,
+              dhuha_preacher_id || null,
               maghrib_preacher_id || null,
               friday_preacher_id || null,
               notes || null,

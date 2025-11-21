@@ -46,6 +46,10 @@ body {
     display: none !important;
   }
 
+  .print-only {
+    display: block !important;
+  }
+
   .card {
     box-shadow: none;
     border: 1px solid #dee2e6;
@@ -110,6 +114,82 @@ body {
 
   .card-body {
     padding: 5px !important;
+  }
+
+  /* Preacher photo print styles */
+  .rounded-circle,
+  .rounded {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  img.rounded-circle,
+  .rounded-circle img,
+  img.preacher-photo-schedule {
+    width: 30px !important;
+    height: 30px !important;
+    border: 1px solid #ddd !important;
+    display: inline-block !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Ensure preacher photos fit in schedule cells */
+  .preacher-photo-schedule {
+    max-width: 40px !important;
+    max-height: 40px !important;
+    object-fit: cover !important;
+  }
+
+  /* Preacher schedule calendar print styles */
+  .calendar-table {
+    width: 100%;
+    font-size: 9px !important;
+  }
+
+  .calendar-table th,
+  .calendar-table td {
+    padding: 3px !important;
+    font-size: 8px !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  .calendar-day {
+    height: auto !important;
+    min-height: 90px !important;
+    vertical-align: top !important;
+    page-break-inside: avoid;
+  }
+
+  .calendar-day.other-month {
+    background-color: #f8f9fa !important;
+    opacity: 0.5 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .day-number {
+    font-size: 11px !important;
+    font-weight: bold;
+    margin-bottom: 3px !important;
+  }
+
+  .preacher-slots {
+    font-size: 7px !important;
+  }
+
+  .slot {
+    margin-bottom: 2px !important;
+  }
+
+  .slot small {
+    font-size: 6px !important;
+    display: block;
+  }
+
+  /* Keep select dropdowns visible on screen, hide on print */
+  .calendar-day select {
+    display: none !important;
   }
 }
 
