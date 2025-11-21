@@ -2,8 +2,6 @@
 -- Date: 2025-11-20
 -- Description: Add harta_modal table for capital assets management
 
-USE isar_db;
-
 -- Create harta_modal table
 CREATE TABLE IF NOT EXISTS harta_modal (
     id INT AUTO_INCREMENT PRIMARY KEY,

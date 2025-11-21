@@ -2,11 +2,9 @@
 -- Date: 2025-11-20
 -- Description: Add photo field to preachers table for displaying preacher images in schedules
 
-USE isar_db;
-
 -- Add photo column to preachers table
 ALTER TABLE preachers
-ADD COLUMN photo VARCHAR(255) NULL AFTER name;
+ADD COLUMN IF NOT EXISTS photo VARCHAR(255) NULL AFTER name;
 
 -- Update existing records to have NULL photo (optional, already default)
 -- Note: Photos will be stored in /uploads/preachers/ directory

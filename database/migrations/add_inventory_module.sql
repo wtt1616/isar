@@ -2,8 +2,6 @@
 -- Date: 2025-11-20
 -- Description: Add inventory_staff role and inventory table
 
-USE isar_db;
-
 -- Update users table to add inventory_staff role
 ALTER TABLE users
 MODIFY COLUMN role ENUM('admin', 'head_imam', 'imam', 'bilal', 'inventory_staff') NOT NULL;
