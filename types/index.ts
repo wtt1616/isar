@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'head_imam' | 'imam' | 'bilal';
+export type UserRole = 'admin' | 'head_imam' | 'imam' | 'bilal' | 'inventory_staff';
 export type PrayerTime = 'Subuh' | 'Zohor' | 'Asar' | 'Maghrib' | 'Isyak';
 
 export interface User {
@@ -47,4 +47,39 @@ export interface WeekSchedule {
   startDate: string;
   endDate: string;
   schedules: Schedule[];
+}
+
+export interface Inventory {
+  id: number;
+  no_siri_pendaftaran: string;
+  keterangan: string;
+  cara_diperolehi: string;
+  created_by?: number;
+  modified_by?: number;
+  created_at: Date;
+  updated_at: Date;
+  creator_name?: string;
+  modifier_name?: string;
+}
+
+export interface HartaModal {
+  id: number;
+  no_siri_pendaftaran: string;
+  keterangan: string;
+  cara_diperolehi: string;
+  created_by?: number;
+  modified_by?: number;
+  created_at: Date;
+  updated_at: Date;
+  creator_name?: string;
+  modifier_name?: string;
+}
+
+export interface Preacher {
+  id: number;
+  name: string;
+  photo?: string;
+  is_active: number;
+  created_at: Date;
+  updated_at: Date;
 }

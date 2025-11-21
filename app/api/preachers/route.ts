@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('active') === 'true';
 
-    let query = 'SELECT id, name, phone, email, is_active, created_at FROM preachers';
+    let query = 'SELECT id, name, phone, email, photo, is_active, created_at FROM preachers';
 
     if (activeOnly) {
       query += ' WHERE is_active = 1';

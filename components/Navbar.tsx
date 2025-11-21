@@ -57,6 +57,27 @@ export default function Navbar() {
               </Link>
             </li>
 
+            {(userRole === 'admin' || userRole === 'inventory_staff') && (
+              <>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname.startsWith('/inventory') && !pathname.startsWith('/inventory') ? 'active' : pathname === '/inventory' || pathname.startsWith('/inventory/') ? 'active' : ''}`}
+                    href="/inventory"
+                  >
+                    Inventori
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname.startsWith('/harta-modal') ? 'active' : ''}`}
+                    href="/harta-modal"
+                  >
+                    Harta Modal
+                  </Link>
+                </li>
+              </>
+            )}
+
             {(userRole === 'imam' || userRole === 'bilal') && (
               <li className="nav-item">
                 <Link
