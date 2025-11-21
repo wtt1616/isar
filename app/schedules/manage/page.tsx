@@ -127,6 +127,40 @@ export default function ManageSchedulePage() {
     }
   };
 
+  const copySchedule = async () => {
+    const wednesday = getWednesday(selectedWeek);
+    const startDate = formatDateOnly(wednesday);
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/schedules/copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ start_date: startDate }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.conflictCount > 0) {
+          showAlert(
+            'warning',
+            `Schedule copied successfully! ${result.conflictCount} slot(s) have conflicts and are marked with a red star. Please manually assign Imam/Bilal for these slots.`
+          );
+        } else {
+          showAlert('success', 'Schedule copied successfully from previous week!');
+        }
+        fetchData();
+      } else {
+        const error = await response.json();
+        showAlert('danger', error.error || 'Failed to copy schedule');
+      }
+    } catch (error) {
+      showAlert('danger', 'Error copying schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const enableEdit = (scheduleId: number, imamId: number, bilalId: number) => {
     setEditMode({ ...editMode, [scheduleId]: true });
     setEditValues({ ...editValues, [scheduleId]: { imam_id: imamId, bilal_id: bilalId } });
@@ -326,6 +360,9 @@ export default function ManageSchedulePage() {
             <button className="btn btn-success me-2" onClick={generateSchedule}>
               Generate Schedule
             </button>
+            <button className="btn btn-info me-2" onClick={copySchedule}>
+              Copy Schedule
+            </button>
             {schedules.length > 0 && (
               <button className="btn btn-danger" onClick={deleteWeekSchedules}>
                 Delete Week
@@ -479,7 +516,7 @@ export default function ManageSchedulePage() {
                                   <div>
                                     <select
                                       className="form-select form-select-sm mb-2"
-                                      value={editValues[schedule.id]?.imam_id}
+                                      value={editValues[schedule.id]?.imam_id || ''}
                                       onChange={(e) =>
                                         setEditValues({
                                           ...editValues,
@@ -490,6 +527,7 @@ export default function ManageSchedulePage() {
                                         })
                                       }
                                     >
+                                      <option value="">-- Select Imam --</option>
                                       {availableImams.map((imam) => (
                                         <option key={imam.id} value={imam.id}>
                                           {imam.name}
@@ -498,7 +536,7 @@ export default function ManageSchedulePage() {
                                     </select>
                                     <select
                                       className="form-select form-select-sm mb-2"
-                                      value={editValues[schedule.id]?.bilal_id}
+                                      value={editValues[schedule.id]?.bilal_id || ''}
                                       onChange={(e) =>
                                         setEditValues({
                                           ...editValues,
@@ -509,6 +547,7 @@ export default function ManageSchedulePage() {
                                         })
                                       }
                                     >
+                                      <option value="">-- Select Bilal --</option>
                                       {availableBilals.map((bilal) => (
                                         <option key={bilal.id} value={bilal.id}>
                                           {bilal.name}
@@ -527,33 +566,44 @@ export default function ManageSchedulePage() {
                                   </div>
                                 ) : (
                                   <div>
+                                    {/* Red star indicator for vacant slots */}
+                                    {(schedule.imam_id === null || schedule.bilal_id === null) && (
+                                      <div className="text-center mb-2">
+                                        <i
+                                          className="bi bi-star-fill"
+                                          style={{ color: 'red', fontSize: '1.5rem' }}
+                                          title="Vacant - Please assign manually"
+                                        ></i>
+                                      </div>
+                                    )}
+
                                     <div
                                       className="mb-2 p-2 rounded"
                                       style={{
-                                        backgroundColor: getUserColor(schedule.imam_id).bg,
-                                        color: getUserColor(schedule.imam_id).text,
-                                        border: `2px solid ${getUserColor(schedule.imam_id).border}`,
+                                        backgroundColor: schedule.imam_id ? getUserColor(schedule.imam_id).bg : '#f8f9fa',
+                                        color: schedule.imam_id ? getUserColor(schedule.imam_id).text : '#6c757d',
+                                        border: `2px solid ${schedule.imam_id ? getUserColor(schedule.imam_id).border : '#dee2e6'}`,
                                       }}
                                     >
-                                      <strong>Imam:</strong> {schedule.imam_name}
+                                      <strong>Imam:</strong> {schedule.imam_name || <span className="text-danger">VACANT</span>}
                                     </div>
                                     <div
                                       className="mb-2 p-2 rounded"
                                       style={{
-                                        backgroundColor: getUserColor(schedule.bilal_id).bg,
-                                        color: getUserColor(schedule.bilal_id).text,
-                                        border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
+                                        backgroundColor: schedule.bilal_id ? getUserColor(schedule.bilal_id).bg : '#f8f9fa',
+                                        color: schedule.bilal_id ? getUserColor(schedule.bilal_id).text : '#6c757d',
+                                        border: `2px solid ${schedule.bilal_id ? getUserColor(schedule.bilal_id).border : '#dee2e6'}`,
                                       }}
                                     >
-                                      <strong>Bilal:</strong> {schedule.bilal_name}
+                                      <strong>Bilal:</strong> {schedule.bilal_name || <span className="text-danger">VACANT</span>}
                                     </div>
                                     <button
                                       className="btn btn-sm btn-primary mt-2"
                                       onClick={() =>
-                                        enableEdit(schedule.id, schedule.imam_id, schedule.bilal_id)
+                                        enableEdit(schedule.id, schedule.imam_id || 0, schedule.bilal_id || 0)
                                       }
                                     >
-                                      Edit
+                                      {(schedule.imam_id === null || schedule.bilal_id === null) ? 'Assign' : 'Edit'}
                                     </button>
                                   </div>
                                 )
