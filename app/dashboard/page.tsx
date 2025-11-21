@@ -7,12 +7,29 @@ import Navbar from '@/components/Navbar';
 import { Schedule, User } from '@/types';
 import { getUserColor } from '@/lib/userColors';
 
+interface PreacherSchedule {
+  schedule_date: string;
+  subuh_preacher_id: number | null;
+  dhuha_preacher_id: number | null;
+  maghrib_preacher_id: number | null;
+  friday_preacher_id: number | null;
+  subuh_preacher_name?: string;
+  dhuha_preacher_name?: string;
+  maghrib_preacher_name?: string;
+  friday_preacher_name?: string;
+  subuh_preacher_photo?: string | null;
+  dhuha_preacher_photo?: string | null;
+  maghrib_preacher_photo?: string | null;
+  friday_preacher_photo?: string | null;
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [imams, setImams] = useState<User[]>([]);
   const [bilals, setBilals] = useState<User[]>([]);
+  const [preacherSchedules, setPreacherSchedules] = useState<PreacherSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
 
@@ -58,10 +75,11 @@ export default function DashboardPage() {
     const endDate = formatDateOnly(tuesday);
 
     try {
-      const [schedulesRes, imamsRes, bilalsRes] = await Promise.all([
+      const [schedulesRes, imamsRes, bilalsRes, preacherSchedulesRes] = await Promise.all([
         fetch(`/api/schedules?start_date=${startDate}&end_date=${endDate}`),
         fetch('/api/users?role=imam'),
         fetch('/api/users?role=bilal'),
+        fetch(`/api/preacher-schedules?startDate=${startDate}&endDate=${endDate}`),
       ]);
 
       if (schedulesRes.ok) {
@@ -70,6 +88,10 @@ export default function DashboardPage() {
       }
       if (imamsRes.ok) setImams(await imamsRes.json());
       if (bilalsRes.ok) setBilals(await bilalsRes.json());
+      if (preacherSchedulesRes.ok) {
+        const data = await preacherSchedulesRes.json();
+        setPreacherSchedules(data.schedules || []);
+      }
     } catch (error) {
       console.error('Error fetching schedules:', error);
     } finally {
@@ -110,6 +132,39 @@ export default function DashboardPage() {
   const getScheduleForSlot = (date: string, prayerTime: string) => {
     return schedules.find(
       (s) => s.date.split('T')[0] === date && s.prayer_time === prayerTime
+    );
+  };
+
+  const getPreacherScheduleForDate = (date: string) => {
+    return preacherSchedules.find(
+      (ps) => ps.schedule_date === date
+    );
+  };
+
+  const renderPreacherInfo = (name?: string, photo?: string | null) => {
+    if (!name) return <span className="text-muted">-</span>;
+
+    return (
+      <div className="d-flex align-items-center gap-2">
+        {photo ? (
+          <img
+            src={photo}
+            alt={name}
+            width={30}
+            height={30}
+            className="rounded-circle"
+            style={{ objectFit: 'cover' }}
+          />
+        ) : (
+          <div
+            className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
+            style={{ width: '30px', height: '30px', fontSize: '12px' }}
+          >
+            <i className="bi bi-person-fill"></i>
+          </div>
+        )}
+        <span className="small">{name}</span>
+      </div>
     );
   };
 
@@ -240,80 +295,157 @@ export default function DashboardPage() {
             </div>
             </div>
 
-            {/* Weekly Distribution */}
-            <div className="card mb-3 no-print">
+            {/* Preacher Schedule */}
+            <div className="card mb-3 mt-4">
               <div className="card-header">
-                <h5 className="mb-0">Weekly Distribution</h5>
+                <h5 className="mb-0">Preacher Schedule</h5>
               </div>
               <div className="card-body">
-                <div className="row">
-                  <div className="col-md-6">
-                    <h6>Imams</h6>
-                    <div className="d-flex flex-wrap gap-2">
-                      {(() => {
-                        // Count occurrences of each imam
-                        const imamCounts = new Map<number, number>();
-                        schedules.forEach(s => {
-                          imamCounts.set(s.imam_id, (imamCounts.get(s.imam_id) || 0) + 1);
-                        });
+                <div className="table-responsive">
+                  <table className="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Preaching Slot</th>
+                        {days.map((date) => (
+                          <th key={date}>{formatDate(date)}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="prayer-time-cell">Subuh</td>
+                        {days.map((date) => {
+                          const dateObj = new Date(date);
+                          const dayOfWeek = dateObj.getDay();
+                          const preacherSchedule = getPreacherScheduleForDate(date);
 
-                        return Array.from(imamCounts.entries()).map(([imamId, count]) => {
-                          const imam = imams.find(i => i.id === imamId);
-                          if (!imam) return null;
-                          const color = getUserColor(imamId);
-                          return (
-                            <div
-                              key={imamId}
-                              className="px-3 py-2 rounded d-flex align-items-center gap-2"
-                              style={{
-                                backgroundColor: color.bg,
-                                color: color.text,
-                                border: `2px solid ${color.border}`,
-                              }}
-                            >
-                              <span>{imam.name}</span>
-                              <span className="badge bg-dark">{count}x</span>
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <h6>Bilals</h6>
-                    <div className="d-flex flex-wrap gap-2">
-                      {(() => {
-                        // Count occurrences of each bilal
-                        const bilalCounts = new Map<number, number>();
-                        schedules.forEach(s => {
-                          bilalCounts.set(s.bilal_id, (bilalCounts.get(s.bilal_id) || 0) + 1);
-                        });
+                          // Monday (1) and Thursday (4) - No preaching
+                          if (dayOfWeek === 1 || dayOfWeek === 4) {
+                            return (
+                              <td key={`${date}-subuh`} className="text-center text-muted">
+                                No Preaching
+                              </td>
+                            );
+                          }
 
-                        return Array.from(bilalCounts.entries()).map(([bilalId, count]) => {
-                          const bilal = bilals.find(b => b.id === bilalId);
-                          if (!bilal) return null;
-                          const color = getUserColor(bilalId);
+                          // Friday (5) - No Subuh preaching (only Friday preach)
+                          if (dayOfWeek === 5) {
+                            return (
+                              <td key={`${date}-subuh`} className="text-center text-muted">
+                                -
+                              </td>
+                            );
+                          }
+
                           return (
-                            <div
-                              key={bilalId}
-                              className="px-3 py-2 rounded d-flex align-items-center gap-2"
-                              style={{
-                                backgroundColor: color.bg,
-                                color: color.text,
-                                border: `2px solid ${color.border}`,
-                              }}
-                            >
-                              <span>{bilal.name}</span>
-                              <span className="badge bg-dark">{count}x</span>
-                            </div>
+                            <td key={`${date}-subuh`}>
+                              {renderPreacherInfo(preacherSchedule?.subuh_preacher_name, preacherSchedule?.subuh_preacher_photo)}
+                            </td>
                           );
-                        });
-                      })()}
-                    </div>
-                  </div>
+                        })}
+                      </tr>
+                      <tr>
+                        <td className="prayer-time-cell">Dhuha (Weekend)</td>
+                        {days.map((date) => {
+                          const dateObj = new Date(date);
+                          const dayOfWeek = dateObj.getDay();
+                          const preacherSchedule = getPreacherScheduleForDate(date);
+
+                          // Monday (1) and Thursday (4) - No preaching
+                          if (dayOfWeek === 1 || dayOfWeek === 4) {
+                            return (
+                              <td key={`${date}-dhuha`} className="text-center text-muted">
+                                No Preaching
+                              </td>
+                            );
+                          }
+
+                          // Only show Dhuha on weekends (Sunday=0, Saturday=6)
+                          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                            return (
+                              <td key={`${date}-dhuha`} className="text-center text-muted">
+                                -
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={`${date}-dhuha`}>
+                              {renderPreacherInfo(preacherSchedule?.dhuha_preacher_name, preacherSchedule?.dhuha_preacher_photo)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr>
+                        <td className="prayer-time-cell">Maghrib</td>
+                        {days.map((date) => {
+                          const dateObj = new Date(date);
+                          const dayOfWeek = dateObj.getDay();
+                          const preacherSchedule = getPreacherScheduleForDate(date);
+
+                          // Monday (1) and Thursday (4) - No preaching
+                          if (dayOfWeek === 1 || dayOfWeek === 4) {
+                            return (
+                              <td key={`${date}-maghrib`} className="text-center text-muted">
+                                No Preaching
+                              </td>
+                            );
+                          }
+
+                          // Friday (5) - No Maghrib preaching (only Friday preach)
+                          if (dayOfWeek === 5) {
+                            return (
+                              <td key={`${date}-maghrib`} className="text-center text-muted">
+                                -
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={`${date}-maghrib`}>
+                              {renderPreacherInfo(preacherSchedule?.maghrib_preacher_name, preacherSchedule?.maghrib_preacher_photo)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr>
+                        <td className="prayer-time-cell">Friday Preach</td>
+                        {days.map((date) => {
+                          const dateObj = new Date(date);
+                          const dayOfWeek = dateObj.getDay();
+                          const preacherSchedule = getPreacherScheduleForDate(date);
+
+                          // Monday (1) and Thursday (4) - No preaching
+                          if (dayOfWeek === 1 || dayOfWeek === 4) {
+                            return (
+                              <td key={`${date}-friday`} className="text-center text-muted">
+                                No Preaching
+                              </td>
+                            );
+                          }
+
+                          // Only Friday (5) has Friday preach
+                          if (dayOfWeek !== 5) {
+                            return (
+                              <td key={`${date}-friday`} className="text-center text-muted">
+                                -
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={`${date}-friday`}>
+                              {renderPreacherInfo(preacherSchedule?.friday_preacher_name, preacherSchedule?.friday_preacher_photo)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
+
           </>
         )}
       </div>
