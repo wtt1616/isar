@@ -182,10 +182,68 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Color Legend with Count */}
+            {/* Schedule Table */}
+            <div className="card mb-3">
+              <div className="card-body">
+                <div className="table-responsive">
+                <table className="table table-bordered prayer-schedule-table">
+                  <thead>
+                    <tr>
+                      <th>Prayer Time</th>
+                      {days.map((date) => (
+                        <th key={date}>{formatDate(date)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prayerTimes.map((prayer) => (
+                      <tr key={prayer}>
+                        <td className="prayer-time-cell">{prayer}</td>
+                        {days.map((date) => {
+                          const schedule = getScheduleForSlot(date, prayer);
+                          return (
+                            <td key={`${date}-${prayer}`}>
+                              {schedule ? (
+                                <div>
+                                  <div
+                                    className="mb-2 p-2 rounded"
+                                    style={{
+                                      backgroundColor: getUserColor(schedule.imam_id).bg,
+                                      color: getUserColor(schedule.imam_id).text,
+                                      border: `2px solid ${getUserColor(schedule.imam_id).border}`,
+                                    }}
+                                  >
+                                    <strong>Imam:</strong> {schedule.imam_name}
+                                  </div>
+                                  <div
+                                    className="mb-2 p-2 rounded"
+                                    style={{
+                                      backgroundColor: getUserColor(schedule.bilal_id).bg,
+                                      color: getUserColor(schedule.bilal_id).text,
+                                      border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
+                                    }}
+                                  >
+                                    <strong>Bilal:</strong> {schedule.bilal_name}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-muted">-</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            </div>
+
+            {/* Weekly Distribution */}
             <div className="card mb-3 no-print">
               <div className="card-header">
-                <h5 className="mb-0">Color Legend & Weekly Distribution</h5>
+                <h5 className="mb-0">Weekly Distribution</h5>
               </div>
               <div className="card-body">
                 <div className="row">
@@ -256,63 +314,6 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-
-            <div className="card">
-              <div className="card-body">
-                <div className="table-responsive">
-                <table className="table table-bordered prayer-schedule-table">
-                  <thead>
-                    <tr>
-                      <th>Prayer Time</th>
-                      {days.map((date) => (
-                        <th key={date}>{formatDate(date)}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {prayerTimes.map((prayer) => (
-                      <tr key={prayer}>
-                        <td className="prayer-time-cell">{prayer}</td>
-                        {days.map((date) => {
-                          const schedule = getScheduleForSlot(date, prayer);
-                          return (
-                            <td key={`${date}-${prayer}`}>
-                              {schedule ? (
-                                <div>
-                                  <div
-                                    className="mb-2 p-2 rounded"
-                                    style={{
-                                      backgroundColor: getUserColor(schedule.imam_id).bg,
-                                      color: getUserColor(schedule.imam_id).text,
-                                      border: `2px solid ${getUserColor(schedule.imam_id).border}`,
-                                    }}
-                                  >
-                                    <strong>Imam:</strong> {schedule.imam_name}
-                                  </div>
-                                  <div
-                                    className="mb-2 p-2 rounded"
-                                    style={{
-                                      backgroundColor: getUserColor(schedule.bilal_id).bg,
-                                      color: getUserColor(schedule.bilal_id).text,
-                                      border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
-                                    }}
-                                  >
-                                    <strong>Bilal:</strong> {schedule.bilal_name}
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="text-muted">-</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
           </>
         )}
       </div>
