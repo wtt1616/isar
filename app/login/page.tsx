@@ -187,17 +187,27 @@ export default function LoginPage() {
   tuesday.setDate(wednesday.getDate() + 6);
 
   return (
-    <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
+    <div className="min-vh-100" style={{ background: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)' }}>
       {/* Header */}
-      <nav className="navbar navbar-light bg-white shadow-sm">
+      <nav className="navbar navbar-light bg-white shadow-sm" style={{ borderBottom: '3px solid #f59e0b' }}>
         <div className="container-fluid">
-          <span className="navbar-brand mb-0 h1 text-success fw-bold">
-            <i className="bi bi-calendar3 me-2"></i>
-            iSAR System - Public Schedule View
+          <span className="navbar-brand mb-0 h1 fw-bold d-flex align-items-center" style={{ color: '#059669' }}>
+            <i className="bi bi-mosque me-2" style={{ fontSize: '2rem' }}></i>
+            <div>
+              <div style={{ fontSize: '1.5rem', lineHeight: '1.2' }}>iSAR System</div>
+              <div style={{ fontSize: '0.875rem', fontWeight: '400', color: '#4b5563' }}>Public Schedule View</div>
+            </div>
           </span>
           <button
-            className="btn btn-success"
+            className="btn btn-success d-flex align-items-center"
             onClick={() => setShowLoginModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              border: 'none',
+              padding: '0.625rem 1.5rem',
+              borderRadius: '0.5rem',
+              fontWeight: '600'
+            }}
           >
             <i className="bi bi-box-arrow-in-right me-2"></i>
             Staff Login
@@ -208,40 +218,41 @@ export default function LoginPage() {
       {/* Main Content */}
       <div className="container mt-4 pb-5">
         {/* Week Navigation */}
-        <div className="card mb-4">
+        <div className="card mb-4" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)' }}>
           <div className="card-body">
             <div className="row align-items-center">
-              <div className="col-md-4">
-                <h4 className="mb-0">
+              <div className="col-md-4 mb-3 mb-md-0">
+                <h4 className="mb-1 d-flex align-items-center" style={{ color: '#059669' }}>
                   <i className="bi bi-calendar-week me-2"></i>
                   Weekly Schedule
                 </h4>
                 <p className="text-muted mb-0 small">
-                  {wednesday.toLocaleDateString()} - {tuesday.toLocaleDateString()}
+                  <i className="bi bi-calendar-range me-1"></i>
+                  {wednesday.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} - {tuesday.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
               </div>
               <div className="col-md-8 text-end">
                 <div className="btn-group">
                   <button
-                    className="btn btn-outline-secondary"
+                    className="btn btn-outline-secondary d-flex align-items-center"
                     onClick={() => changeWeek(-1)}
                     disabled={schedulesLoading}
                   >
-                    <i className="bi bi-chevron-left"></i> Previous Week
+                    <i className="bi bi-chevron-left me-1"></i> Previous
                   </button>
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-primary d-flex align-items-center"
                     onClick={() => setSelectedWeek(new Date())}
                     disabled={schedulesLoading}
                   >
-                    Current Week
+                    <i className="bi bi-calendar-check me-1"></i> Current Week
                   </button>
                   <button
-                    className="btn btn-outline-secondary"
+                    className="btn btn-outline-secondary d-flex align-items-center"
                     onClick={() => changeWeek(1)}
                     disabled={schedulesLoading}
                   >
-                    Next Week <i className="bi bi-chevron-right"></i>
+                    Next <i className="bi bi-chevron-right ms-1"></i>
                   </button>
                 </div>
               </div>
@@ -264,7 +275,7 @@ export default function LoginPage() {
           <>
             {/* Prayer Schedule */}
             <div className="card mb-4">
-              <div className="card-header bg-success text-white">
+              <div className="card-header text-white">
                 <h5 className="mb-0">
                   <i className="bi bi-clock me-2"></i>
                   Prayer Schedule
@@ -328,7 +339,7 @@ export default function LoginPage() {
 
             {/* Preacher Schedule */}
             <div className="card mb-4">
-              <div className="card-header bg-primary text-white">
+              <div className="card-header text-white" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}>
                 <h5 className="mb-0">
                   <i className="bi bi-megaphone me-2"></i>
                   Preacher Schedule
@@ -477,21 +488,28 @@ export default function LoginPage() {
 
       {/* Login Modal */}
       {showLoginModal && (
-        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title text-success fw-bold">Staff Login</h5>
+            <div className="modal-content" style={{ borderRadius: '1rem', overflow: 'hidden' }}>
+              <div className="modal-header" style={{
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                borderBottom: 'none',
+                color: 'white'
+              }}>
+                <h5 className="modal-title fw-bold d-flex align-items-center">
+                  <i className="bi bi-shield-lock me-2"></i>
+                  Staff Login
+                </h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => {
                     setShowLoginModal(false);
                     setError('');
                   }}
                 ></button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body" style={{ padding: '2rem' }}>
                 {error && (
                   <div className="alert alert-danger" role="alert">
                     {error}

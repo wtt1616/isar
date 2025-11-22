@@ -187,41 +187,50 @@ export default function DashboardPage() {
   return (
     <>
       <Navbar />
-      <div className="container mt-4">
+      <div className="container mt-4 mb-5">
+        {/* Page Header */}
         <div className="row mb-4 no-print">
           <div className="col-md-8">
-            <h2>Prayer Schedule</h2>
-            <p className="text-muted">
-              Week: {wednesday.toLocaleDateString()} - {tuesday.toLocaleDateString()}
-            </p>
+            <div className="d-flex align-items-center mb-2">
+              <i className="bi bi-calendar-week me-3" style={{ fontSize: '2.5rem', color: '#059669' }}></i>
+              <div>
+                <h2 className="mb-1">Prayer Schedule</h2>
+                <p className="text-muted mb-0" style={{ fontSize: '0.95rem' }}>
+                  <i className="bi bi-calendar-range me-2"></i>
+                  {wednesday.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} - {tuesday.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="col-md-4 text-end">
-            <button className="btn btn-outline-success me-2" onClick={handlePrint}>
-              <i className="bi bi-printer"></i> Print Schedule
+          <div className="col-md-4 text-end d-flex align-items-center justify-content-end">
+            <button className="btn btn-outline-success" onClick={handlePrint}>
+              <i className="bi bi-printer me-2"></i>Print Schedule
             </button>
           </div>
         </div>
 
-        <div className="card mb-4 no-print">
+        {/* Week Navigation */}
+        <div className="card mb-4 no-print" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)' }}>
           <div className="card-body">
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center gap-3">
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary d-flex align-items-center"
                 onClick={() => changeWeek(-1)}
               >
-                &larr; Previous Week
+                <i className="bi bi-chevron-left me-2"></i>Previous Week
               </button>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary d-flex align-items-center"
                 onClick={() => setSelectedWeek(new Date())}
+                style={{ minWidth: '150px' }}
               >
-                Current Week
+                <i className="bi bi-calendar-check me-2"></i>Current Week
               </button>
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary d-flex align-items-center"
                 onClick={() => changeWeek(1)}
               >
-                Next Week &rarr;
+                Next Week<i className="bi bi-chevron-right ms-2"></i>
               </button>
             </div>
           </div>
@@ -297,8 +306,10 @@ export default function DashboardPage() {
 
             {/* Preacher Schedule */}
             <div className="card mb-3 mt-4">
-              <div className="card-header">
-                <h5 className="mb-0">Preacher Schedule</h5>
+              <div className="card-header text-white">
+                <h5 className="mb-0">
+                  <i className="bi bi-megaphone me-2"></i>Preacher Schedule
+                </h5>
               </div>
               <div className="card-body">
                 <div className="table-responsive">

@@ -13,10 +13,15 @@ export default function Navbar() {
   const userRole = (session.user as any).role;
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-success no-print">
+    <nav className="navbar navbar-expand-lg navbar-dark no-print" style={{
+      background: 'linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%)',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      borderBottom: '3px solid #f59e0b'
+    }}>
       <div className="container-fluid">
-        <Link className="navbar-brand" href="/dashboard">
-          iSAR System
+        <Link className="navbar-brand d-flex align-items-center" href="/dashboard">
+          <i className="bi bi-mosque me-2" style={{ fontSize: '1.75rem' }}></i>
+          <span>iSAR System</span>
         </Link>
         <button
           className="navbar-toggler"
