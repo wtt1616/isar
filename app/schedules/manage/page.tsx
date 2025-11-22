@@ -41,11 +41,24 @@ export default function ManageSchedulePage() {
   const getWednesday = (date: Date) => {
     const d = new Date(date);
     const day = d.getDay();
-    // Calculate days to Wednesday (day 3)
-    // If today is Wednesday (3), diff = 0
-    // If today is Thursday (4) or later, go back to previous Wednesday
-    // If today is before Wednesday, go forward to next Wednesday
-    const diff = day === 0 ? 3 : day <= 3 ? 3 - day : -(day - 3);
+    // Calculate days to Wednesday (day 3) for the week containing this date
+    // Week runs from Wednesday to Tuesday
+    // If today is Wednesday (3), Thursday (4), Friday (5), Saturday (6): use this week's Wednesday
+    // If today is Sunday (0), Monday (1), Tuesday (2): use this week's Wednesday (which is ahead)
+    let diff;
+    if (day === 0) {
+      // Sunday: go back 4 days to get Wednesday of this week
+      diff = -4;
+    } else if (day === 1) {
+      // Monday: go back 5 days to get Wednesday of this week
+      diff = -5;
+    } else if (day === 2) {
+      // Tuesday: go back 6 days to get Wednesday of this week
+      diff = -6;
+    } else {
+      // Wednesday (3), Thursday (4), Friday (5), Saturday (6): go back (day - 3) days
+      diff = 3 - day;
+    }
     const wednesday = new Date(d);
     wednesday.setDate(d.getDate() + diff);
     return wednesday;
