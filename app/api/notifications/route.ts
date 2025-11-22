@@ -1,8 +1,9 @@
 // app/api/notifications/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
-import { query } from '@/lib/db';
+import { authOptions } from '@/lib/auth';
+import pool from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
 import { sendDutyReminder, sendBatchReminders, sendTestMessage, isWhatsAppConfigured } from '@/lib/whatsapp';
 
 // POST /api/notifications - Send WhatsApp reminders
@@ -15,8 +16,13 @@ export async function POST(request: NextRequest) {
     }
 
     const userRole = (session.user as any).role;
+    console.log('User role attempting to send notification:', userRole);
+
     if (userRole !== 'head_imam' && userRole !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden - Only Head Imam or Admin can send notifications' }, { status: 403 });
+      console.log('Access denied for role:', userRole);
+      return NextResponse.json({
+        error: `Forbidden - Only Head Imam or Admin can send notifications. Your role: ${userRole}`
+      }, { status: 403 });
     }
 
     // Check if WhatsApp is configured
@@ -68,7 +74,7 @@ export async function POST(request: NextRequest) {
         WHERE s.id IN (${placeholders})
       `;
 
-      const schedules = await query(sql, scheduleIds);
+      const [schedules] = await pool.execute<RowDataPacket[]>(sql, scheduleIds);
       
       const reminders = [];
       
@@ -129,7 +135,7 @@ export async function POST(request: NextRequest) {
         WHERE DATE(s.date) = ?
       `;
 
-      const schedules = await query(sql, [date]);
+      const [schedules] = await pool.execute<RowDataPacket[]>(sql, [date]);
       
       const reminders = [];
       
