@@ -49,14 +49,25 @@ export default function Navbar() {
             </li>
 
             {(userRole === 'head_imam' || userRole === 'admin') && (
-              <li className="nav-item">
-                <Link
-                  className={`nav-link ${pathname === '/schedules/manage' ? 'active' : ''}`}
-                  href="/schedules/manage"
-                >
-                  Manage Schedules
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname === '/schedules/manage' ? 'active' : ''}`}
+                    href="/schedules/manage"
+                  >
+                    Manage Schedules
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname === '/dashboard/whatsapp-test' ? 'active' : ''}`}
+                    href="/dashboard/whatsapp-test"
+                  >
+                    <i className="bi bi-whatsapp me-1"></i>
+                    WhatsApp Test
+                  </Link>
+                </li>
+              </>
             )}
 
             <li className="nav-item">
