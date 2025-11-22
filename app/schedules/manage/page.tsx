@@ -343,6 +343,24 @@ export default function ManageSchedulePage() {
     });
   };
 
+  const getWeekDateRange = (weekOffset: number = 0) => {
+    const targetDate = new Date(selectedWeek);
+    targetDate.setDate(targetDate.getDate() + weekOffset * 7);
+
+    const wednesday = getWednesday(targetDate);
+    const tuesday = new Date(wednesday);
+    tuesday.setDate(wednesday.getDate() + 6);
+
+    const formatShort = (date: Date) => {
+      return date.toLocaleDateString('en-MY', {
+        day: 'numeric',
+        month: 'short'
+      });
+    };
+
+    return `${formatShort(wednesday)} - ${formatShort(tuesday)}`;
+  };
+
   const getDaysOfWeek = () => {
     const wednesday = getWednesday(selectedWeek);
     const days = [];
@@ -526,15 +544,18 @@ export default function ManageSchedulePage() {
 
         <div className="card mb-4">
           <div className="card-body">
-            <div className="d-flex justify-content-between">
-              <button className="btn btn-secondary" onClick={() => changeWeek(-1)}>
-                &larr; Previous Week
+            <div className="d-flex justify-content-between gap-2 flex-wrap">
+              <button className="btn btn-secondary d-flex flex-column align-items-center" onClick={() => changeWeek(-1)} style={{ flex: '1 1 auto', minHeight: '60px' }}>
+                <div>&larr; Previous Week</div>
+                <small className="text-white-50 mt-1">{getWeekDateRange(-1)}</small>
               </button>
-              <button className="btn btn-primary" onClick={() => setSelectedWeek(new Date())}>
-                Current Week
+              <button className="btn btn-primary d-flex flex-column align-items-center" onClick={() => setSelectedWeek(new Date())} style={{ flex: '1 1 auto', minHeight: '60px' }}>
+                <div>Current Week</div>
+                <small className="text-white-50 mt-1">{getWeekDateRange(0)}</small>
               </button>
-              <button className="btn btn-secondary" onClick={() => changeWeek(1)}>
-                Next Week &rarr;
+              <button className="btn btn-secondary d-flex flex-column align-items-center" onClick={() => changeWeek(1)} style={{ flex: '1 1 auto', minHeight: '60px' }}>
+                <div>Next Week &rarr;</div>
+                <small className="text-white-50 mt-1">{getWeekDateRange(1)}</small>
               </button>
             </div>
           </div>

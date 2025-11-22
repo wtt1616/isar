@@ -145,6 +145,24 @@ export default function DashboardPage() {
     });
   };
 
+  const getWeekDateRange = (weekOffset: number = 0) => {
+    const targetDate = new Date(selectedWeek);
+    targetDate.setDate(targetDate.getDate() + weekOffset * 7);
+
+    const wednesday = getWednesday(targetDate);
+    const tuesday = new Date(wednesday);
+    tuesday.setDate(wednesday.getDate() + 6);
+
+    const formatShort = (date: Date) => {
+      return date.toLocaleDateString('en-MY', {
+        day: 'numeric',
+        month: 'short'
+      });
+    };
+
+    return `${formatShort(wednesday)} - ${formatShort(tuesday)}`;
+  };
+
   const getDaysOfWeek = () => {
     const wednesday = getWednesday(selectedWeek);
     const days = [];
@@ -328,31 +346,40 @@ export default function DashboardPage() {
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap">
               <button
-                className="btn btn-secondary d-flex align-items-center justify-content-center"
+                className="btn btn-secondary d-flex flex-column align-items-center justify-content-center"
                 onClick={() => changeWeek(-1)}
                 style={{ minHeight: '44px', flex: '1 1 auto' }}
               >
-                <i className="bi bi-chevron-left me-1"></i>
-                <span className="d-none d-sm-inline">Previous Week</span>
-                <span className="d-inline d-sm-none">Prev</span>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-chevron-left me-1"></i>
+                  <span className="d-none d-sm-inline">Previous Week</span>
+                  <span className="d-inline d-sm-none">Prev</span>
+                </div>
+                <small className="text-white-50 mt-1">{getWeekDateRange(-1)}</small>
               </button>
               <button
-                className="btn btn-primary d-flex align-items-center justify-content-center"
+                className="btn btn-primary d-flex flex-column align-items-center justify-content-center"
                 onClick={() => setSelectedWeek(new Date())}
                 style={{ minWidth: '120px', minHeight: '44px', flex: '1 1 auto' }}
               >
-                <i className="bi bi-calendar-check me-1"></i>
-                <span className="d-none d-sm-inline">Current Week</span>
-                <span className="d-inline d-sm-none">Today</span>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-calendar-check me-1"></i>
+                  <span className="d-none d-sm-inline">Current Week</span>
+                  <span className="d-inline d-sm-none">Today</span>
+                </div>
+                <small className="text-white-50 mt-1">{getWeekDateRange(0)}</small>
               </button>
               <button
-                className="btn btn-secondary d-flex align-items-center justify-content-center"
+                className="btn btn-secondary d-flex flex-column align-items-center justify-content-center"
                 onClick={() => changeWeek(1)}
                 style={{ minHeight: '44px', flex: '1 1 auto' }}
               >
-                <span className="d-none d-sm-inline">Next Week</span>
-                <span className="d-inline d-sm-none">Next</span>
-                <i className="bi bi-chevron-right ms-1"></i>
+                <div className="d-flex align-items-center">
+                  <span className="d-none d-sm-inline">Next Week</span>
+                  <span className="d-inline d-sm-none">Next</span>
+                  <i className="bi bi-chevron-right ms-1"></i>
+                </div>
+                <small className="text-white-50 mt-1">{getWeekDateRange(1)}</small>
               </button>
             </div>
           </div>
