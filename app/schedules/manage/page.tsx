@@ -19,6 +19,7 @@ export default function ManageSchedulePage() {
   const [editValues, setEditValues] = useState<{ [key: string]: { imam_id: number; bilal_id: number } }>({});
   const [alert, setAlert] = useState<{ type: string; message: string } | null>(null);
   const [unavailability, setUnavailability] = useState<Map<string, Set<number>>>(new Map());
+  const [sendingReminders, setSendingReminders] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -288,6 +289,45 @@ export default function ManageSchedulePage() {
     setTimeout(() => setAlert(null), 5000);
   };
 
+  const sendWeekReminders = async () => {
+    if (schedules.length === 0) {
+      showAlert('warning', 'No schedules to send reminders for');
+      return;
+    }
+
+    if (!confirm(`Send WhatsApp reminders to all Imams and Bilals for this week (${schedules.length} schedules)?`)) {
+      return;
+    }
+
+    try {
+      setSendingReminders(true);
+
+      const scheduleIds = schedules.map(s => s.id);
+
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_for_schedules',
+          scheduleIds
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showAlert('success', result.message || `Sent ${result.sent} reminders successfully!`);
+      } else {
+        showAlert('danger', result.error || 'Failed to send reminders');
+      }
+    } catch (error) {
+      console.error('Error sending reminders:', error);
+      showAlert('danger', 'Error sending reminders. Please check WhatsApp configuration.');
+    } finally {
+      setSendingReminders(false);
+    }
+  };
+
   const changeWeek = (direction: number) => {
     const newDate = new Date(selectedWeek);
     newDate.setDate(newDate.getDate() + direction * 7);
@@ -370,9 +410,27 @@ export default function ManageSchedulePage() {
               <i className="bi bi-files me-2"></i>Copy
             </button>
             {schedules.length > 0 && (
-              <button className="btn btn-danger d-flex align-items-center" onClick={deleteWeekSchedules}>
-                <i className="bi bi-trash me-2"></i>Delete
-              </button>
+              <>
+                <button
+                  className="btn btn-primary d-flex align-items-center"
+                  onClick={sendWeekReminders}
+                  disabled={sendingReminders}
+                >
+                  {sendingReminders ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-whatsapp me-2"></i>Send Reminders
+                    </>
+                  )}
+                </button>
+                <button className="btn btn-danger d-flex align-items-center" onClick={deleteWeekSchedules}>
+                  <i className="bi bi-trash me-2"></i>Delete
+                </button>
+              </>
             )}
           </div>
         </div>
