@@ -32,6 +32,12 @@ export default function DashboardPage() {
   const [preacherSchedules, setPreacherSchedules] = useState<PreacherSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
+  const [stats, setStats] = useState({
+    totalSchedules: 0,
+    totalImams: 0,
+    totalBilals: 0,
+    upcomingDuties: 0
+  });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -82,16 +88,37 @@ export default function DashboardPage() {
         fetch(`/api/preacher-schedules?startDate=${startDate}&endDate=${endDate}`),
       ]);
 
+      let schedulesData: Schedule[] = [];
+      let imamsData: User[] = [];
+      let bilalsData: User[] = [];
+
       if (schedulesRes.ok) {
-        const data = await schedulesRes.json();
-        setSchedules(data);
+        schedulesData = await schedulesRes.json();
+        setSchedules(schedulesData);
       }
-      if (imamsRes.ok) setImams(await imamsRes.json());
-      if (bilalsRes.ok) setBilals(await bilalsRes.json());
+      if (imamsRes.ok) {
+        imamsData = await imamsRes.json();
+        setImams(imamsData);
+      }
+      if (bilalsRes.ok) {
+        bilalsData = await bilalsRes.json();
+        setBilals(bilalsData);
+      }
       if (preacherSchedulesRes.ok) {
         const data = await preacherSchedulesRes.json();
         setPreacherSchedules(data.schedules || []);
       }
+
+      // Calculate stats
+      const now = new Date();
+      const upcoming = schedulesData.filter((s: Schedule) => new Date(s.date) >= now);
+
+      setStats({
+        totalSchedules: schedulesData.length,
+        totalImams: imamsData.filter((u: User) => u.is_active).length,
+        totalBilals: bilalsData.filter((u: User) => u.is_active).length,
+        upcomingDuties: upcoming.length
+      });
     } catch (error) {
       console.error('Error fetching schedules:', error);
     } finally {
@@ -209,6 +236,93 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Statistics Cards */}
+        <div className="row g-4 mb-4 no-print">
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p className="mb-1 opacity-75" style={{ fontSize: '0.875rem' }}>This Week</p>
+                    <h3 className="mb-0 fw-bold" style={{ fontSize: '2rem', color: 'white' }}>{stats.totalSchedules}</h3>
+                    <p className="mb-0 mt-1" style={{ fontSize: '0.875rem' }}>Total Schedules</p>
+                  </div>
+                  <div className="p-3 rounded-circle" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                    <i className="bi bi-calendar-check" style={{ fontSize: '1.5rem' }}></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p className="mb-1 opacity-75" style={{ fontSize: '0.875rem' }}>Active</p>
+                    <h3 className="mb-0 fw-bold" style={{ fontSize: '2rem', color: 'white' }}>{stats.totalImams}</h3>
+                    <p className="mb-0 mt-1" style={{ fontSize: '0.875rem' }}>Imams Available</p>
+                  </div>
+                  <div className="p-3 rounded-circle" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                    <i className="bi bi-person-badge" style={{ fontSize: '1.5rem' }}></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p className="mb-1 opacity-75" style={{ fontSize: '0.875rem' }}>Active</p>
+                    <h3 className="mb-0 fw-bold" style={{ fontSize: '2rem', color: 'white' }}>{stats.totalBilals}</h3>
+                    <p className="mb-0 mt-1" style={{ fontSize: '0.875rem' }}>Bilals Available</p>
+                  </div>
+                  <div className="p-3 rounded-circle" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                    <i className="bi bi-person-check" style={{ fontSize: '1.5rem' }}></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <p className="mb-1 opacity-75" style={{ fontSize: '0.875rem' }}>Upcoming</p>
+                    <h3 className="mb-0 fw-bold" style={{ fontSize: '2rem', color: 'white' }}>{stats.upcomingDuties}</h3>
+                    <p className="mb-0 mt-1" style={{ fontSize: '0.875rem' }}>Prayer Duties</p>
+                  </div>
+                  <div className="p-3 rounded-circle" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                    <i className="bi bi-clock-history" style={{ fontSize: '1.5rem' }}></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Week Navigation */}
         <div className="card mb-4 no-print" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)' }}>
           <div className="card-body">
@@ -248,6 +362,11 @@ export default function DashboardPage() {
           <>
             {/* Schedule Table */}
             <div className="card mb-3">
+              <div className="card-header text-white">
+                <h5 className="mb-0">
+                  <i className="bi bi-table me-2"></i>Weekly Prayer Schedule
+                </h5>
+              </div>
               <div className="card-body">
                 <div className="table-responsive">
                 <table className="table table-bordered prayer-schedule-table">

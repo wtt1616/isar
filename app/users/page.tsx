@@ -177,18 +177,99 @@ export default function UsersPage() {
 
         <div className="row mb-4">
           <div className="col-md-8">
-            <h2>Manage Users</h2>
+            <div className="d-flex align-items-center mb-2">
+              <i className="bi bi-people me-3" style={{ fontSize: '2.5rem', color: '#059669' }}></i>
+              <div>
+                <h2 className="mb-1">Manage Users</h2>
+                <p className="text-muted mb-0" style={{ fontSize: '0.95rem' }}>
+                  <i className="bi bi-shield-check me-2"></i>
+                  Add, edit, and manage system users
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="col-md-4 text-end">
+          <div className="col-md-4 text-end d-flex align-items-center justify-content-end">
             <button
-              className="btn btn-success"
+              className="btn btn-success d-flex align-items-center"
               onClick={() => {
                 resetForm();
                 setShowModal(true);
               }}
             >
-              Add New User
+              <i className="bi bi-person-plus me-2"></i>Add New User
             </button>
+          </div>
+        </div>
+
+        {/* Statistics */}
+        <div className="row g-3 mb-4">
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Total Users</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{users.length}</h4>
+                  </div>
+                  <i className="bi bi-people" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Active</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{users.filter(u => u.is_active).length}</h4>
+                  </div>
+                  <i className="bi bi-check-circle" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Imams</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{users.filter(u => u.role === 'imam').length}</h4>
+                  </div>
+                  <i className="bi bi-person-badge" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Bilals</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{users.filter(u => u.role === 'bilal').length}</h4>
+                  </div>
+                  <i className="bi bi-person-check" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -198,9 +279,14 @@ export default function UsersPage() {
           </div>
         ) : (
           <div className="card">
+            <div className="card-header text-white">
+              <h5 className="mb-0">
+                <i className="bi bi-table me-2"></i>Users Directory
+              </h5>
+            </div>
             <div className="card-body">
               <div className="table-responsive">
-                <table className="table table-hover">
+                <table className="table table-hover align-middle">
                   <thead>
                     <tr>
                       <th
@@ -254,13 +340,13 @@ export default function UsersPage() {
                             className="btn btn-sm btn-primary me-2"
                             onClick={() => handleEdit(user)}
                           >
-                            Edit
+                            <i className="bi bi-pencil me-1"></i>Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
                             onClick={() => handleDelete(user.id)}
                           >
-                            Delete
+                            <i className="bi bi-trash me-1"></i>Delete
                           </button>
                         </td>
                       </tr>
@@ -277,17 +363,22 @@ export default function UsersPage() {
           <div
             className="modal show d-block"
             tabIndex={-1}
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
           >
             <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
+              <div className="modal-content" style={{ borderRadius: '1rem', overflow: 'hidden' }}>
+                <div className="modal-header" style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  borderBottom: 'none',
+                  color: 'white'
+                }}>
+                  <h5 className="modal-title fw-bold d-flex align-items-center">
+                    <i className={`bi ${editingUser ? 'bi-pencil-square' : 'bi-person-plus'} me-2`}></i>
                     {editingUser ? 'Edit User' : 'Add New User'}
                   </h5>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="btn-close btn-close-white"
                     onClick={() => {
                       setShowModal(false);
                       resetForm();
