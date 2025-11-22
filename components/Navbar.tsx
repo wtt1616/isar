@@ -28,6 +28,12 @@ export default function Navbar() {
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
+          aria-label="Toggle navigation"
+          style={{
+            minHeight: '44px',
+            minWidth: '44px',
+            border: '2px solid rgba(255, 255, 255, 0.3)'
+          }}
         >
           <span className="navbar-toggler-icon"></span>
         </button>

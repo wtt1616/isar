@@ -16,12 +16,12 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'iSAR',
   },
-  themeColor: '#2196F3',
+  themeColor: '#059669',
   viewport: {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    maximumScale: 5,
+    userScalable: true,
   },
 };
 export default function RootLayout({
@@ -38,7 +38,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="iSAR" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#2196F3" />
+        <meta name="theme-color" content="#059669" />
       </head>
       <body className={inter.className}>
         <SessionProvider>

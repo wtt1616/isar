@@ -326,25 +326,33 @@ export default function DashboardPage() {
         {/* Week Navigation */}
         <div className="card mb-4 no-print" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)' }}>
           <div className="card-body">
-            <div className="d-flex justify-content-between align-items-center gap-3">
+            <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap">
               <button
-                className="btn btn-secondary d-flex align-items-center"
+                className="btn btn-secondary d-flex align-items-center justify-content-center"
                 onClick={() => changeWeek(-1)}
+                style={{ minHeight: '44px', flex: '1 1 auto' }}
               >
-                <i className="bi bi-chevron-left me-2"></i>Previous Week
+                <i className="bi bi-chevron-left me-1"></i>
+                <span className="d-none d-sm-inline">Previous Week</span>
+                <span className="d-inline d-sm-none">Prev</span>
               </button>
               <button
-                className="btn btn-primary d-flex align-items-center"
+                className="btn btn-primary d-flex align-items-center justify-content-center"
                 onClick={() => setSelectedWeek(new Date())}
-                style={{ minWidth: '150px' }}
+                style={{ minWidth: '120px', minHeight: '44px', flex: '1 1 auto' }}
               >
-                <i className="bi bi-calendar-check me-2"></i>Current Week
+                <i className="bi bi-calendar-check me-1"></i>
+                <span className="d-none d-sm-inline">Current Week</span>
+                <span className="d-inline d-sm-none">Today</span>
               </button>
               <button
-                className="btn btn-secondary d-flex align-items-center"
+                className="btn btn-secondary d-flex align-items-center justify-content-center"
                 onClick={() => changeWeek(1)}
+                style={{ minHeight: '44px', flex: '1 1 auto' }}
               >
-                Next Week<i className="bi bi-chevron-right ms-2"></i>
+                <span className="d-none d-sm-inline">Next Week</span>
+                <span className="d-inline d-sm-none">Next</span>
+                <i className="bi bi-chevron-right ms-1"></i>
               </button>
             </div>
           </div>
