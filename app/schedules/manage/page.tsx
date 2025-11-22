@@ -351,23 +351,101 @@ export default function ManageSchedulePage() {
 
         <div className="row mb-4">
           <div className="col-md-8">
-            <h2>Manage Prayer Schedule</h2>
-            <p className="text-muted">
-              Week: {wednesday.toLocaleDateString()} - {tuesday.toLocaleDateString()}
-            </p>
+            <div className="d-flex align-items-center mb-2">
+              <i className="bi bi-calendar-range me-3" style={{ fontSize: '2.5rem', color: '#059669' }}></i>
+              <div>
+                <h2 className="mb-1">Manage Prayer Schedule</h2>
+                <p className="text-muted mb-0" style={{ fontSize: '0.95rem' }}>
+                  <i className="bi bi-calendar3 me-2"></i>
+                  {wednesday.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} - {tuesday.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="col-md-4 text-end">
-            <button className="btn btn-success me-2" onClick={generateSchedule}>
-              Generate Schedule
+          <div className="col-md-4 text-end d-flex align-items-center justify-content-end gap-2 flex-wrap">
+            <button className="btn btn-success d-flex align-items-center" onClick={generateSchedule}>
+              <i className="bi bi-magic me-2"></i>Generate
             </button>
-            <button className="btn btn-info me-2" onClick={copySchedule}>
-              Copy Schedule
+            <button className="btn btn-info d-flex align-items-center" onClick={copySchedule}>
+              <i className="bi bi-files me-2"></i>Copy
             </button>
             {schedules.length > 0 && (
-              <button className="btn btn-danger" onClick={deleteWeekSchedules}>
-                Delete Week
+              <button className="btn btn-danger d-flex align-items-center" onClick={deleteWeekSchedules}>
+                <i className="bi bi-trash me-2"></i>Delete
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="row g-3 mb-4">
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Total Schedules</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{schedules.length}</h4>
+                  </div>
+                  <i className="bi bi-calendar-check" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Editing</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{Object.keys(editMode).filter(id => editMode[id]).length}</h4>
+                  </div>
+                  <i className="bi bi-pencil-square" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Available Imams</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{imams.filter(u => u.is_active).length}</h4>
+                  </div>
+                  <i className="bi bi-person-badge" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-sm-6">
+            <div className="card h-100" style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              border: 'none',
+              color: 'white'
+            }}>
+              <div className="card-body py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="mb-0 opacity-75 small">Available Bilals</p>
+                    <h4 className="mb-0 fw-bold" style={{ color: 'white' }}>{bilals.filter(u => u.is_active).length}</h4>
+                  </div>
+                  <i className="bi bi-person-check" style={{ fontSize: '2rem', opacity: '0.3' }}></i>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
