@@ -488,83 +488,6 @@ export default function ManageSchedulePage() {
           </div>
         ) : (
           <>
-            {/* Color Legend with Count */}
-            {schedules.length > 0 && (
-              <div className="card mb-3">
-                <div className="card-header">
-                  <h5 className="mb-0">Color Legend & Weekly Distribution</h5>
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-6">
-                      <h6>Imams</h6>
-                      <div className="d-flex flex-wrap gap-2">
-                        {(() => {
-                          // Count occurrences of each imam
-                          const imamCounts = new Map<number, number>();
-                          schedules.forEach(s => {
-                            imamCounts.set(s.imam_id, (imamCounts.get(s.imam_id) || 0) + 1);
-                          });
-
-                          return Array.from(imamCounts.entries()).map(([imamId, count]) => {
-                            const imam = imams.find(i => i.id === imamId);
-                            if (!imam) return null;
-                            const color = getUserColor(imamId);
-                            return (
-                              <div
-                                key={imamId}
-                                className="px-3 py-2 rounded d-flex align-items-center gap-2"
-                                style={{
-                                  backgroundColor: color.bg,
-                                  color: color.text,
-                                  border: `2px solid ${color.border}`,
-                                }}
-                              >
-                                <span>{imam.name}</span>
-                                <span className="badge bg-dark">{count}x</span>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <h6>Bilals</h6>
-                      <div className="d-flex flex-wrap gap-2">
-                        {(() => {
-                          // Count occurrences of each bilal
-                          const bilalCounts = new Map<number, number>();
-                          schedules.forEach(s => {
-                            bilalCounts.set(s.bilal_id, (bilalCounts.get(s.bilal_id) || 0) + 1);
-                          });
-
-                          return Array.from(bilalCounts.entries()).map(([bilalId, count]) => {
-                            const bilal = bilals.find(b => b.id === bilalId);
-                            if (!bilal) return null;
-                            const color = getUserColor(bilalId);
-                            return (
-                              <div
-                                key={bilalId}
-                                className="px-3 py-2 rounded d-flex align-items-center gap-2"
-                                style={{
-                                  backgroundColor: color.bg,
-                                  color: color.text,
-                                  border: `2px solid ${color.border}`,
-                                }}
-                              >
-                                <span>{bilal.name}</span>
-                                <span className="badge bg-dark">{count}x</span>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="card">
               <div className="card-body">
                 <div className="table-responsive">
@@ -698,6 +621,83 @@ export default function ManageSchedulePage() {
               </div>
             </div>
           </div>
+
+            {/* Color Legend with Count - Moved below table */}
+            {schedules.length > 0 && (
+              <div className="card mt-3">
+                <div className="card-header">
+                  <h5 className="mb-0">Color Legend & Weekly Distribution</h5>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <h6>Imams</h6>
+                      <div className="d-flex flex-wrap gap-2">
+                        {(() => {
+                          // Count occurrences of each imam
+                          const imamCounts = new Map<number, number>();
+                          schedules.forEach(s => {
+                            imamCounts.set(s.imam_id, (imamCounts.get(s.imam_id) || 0) + 1);
+                          });
+
+                          return Array.from(imamCounts.entries()).map(([imamId, count]) => {
+                            const imam = imams.find(i => i.id === imamId);
+                            if (!imam) return null;
+                            const color = getUserColor(imamId);
+                            return (
+                              <div
+                                key={imamId}
+                                className="px-3 py-2 rounded d-flex align-items-center gap-2"
+                                style={{
+                                  backgroundColor: color.bg,
+                                  color: color.text,
+                                  border: `2px solid ${color.border}`,
+                                }}
+                              >
+                                <span>{imam.name}</span>
+                                <span className="badge bg-dark">{count}x</span>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <h6>Bilals</h6>
+                      <div className="d-flex flex-wrap gap-2">
+                        {(() => {
+                          // Count occurrences of each bilal
+                          const bilalCounts = new Map<number, number>();
+                          schedules.forEach(s => {
+                            bilalCounts.set(s.bilal_id, (bilalCounts.get(s.bilal_id) || 0) + 1);
+                          });
+
+                          return Array.from(bilalCounts.entries()).map(([bilalId, count]) => {
+                            const bilal = bilals.find(b => b.id === bilalId);
+                            if (!bilal) return null;
+                            const color = getUserColor(bilalId);
+                            return (
+                              <div
+                                key={bilalId}
+                                className="px-3 py-2 rounded d-flex align-items-center gap-2"
+                                style={{
+                                  backgroundColor: color.bg,
+                                  color: color.text,
+                                  border: `2px solid ${color.border}`,
+                                }}
+                              >
+                                <span>{bilal.name}</span>
+                                <span className="badge bg-dark">{count}x</span>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
