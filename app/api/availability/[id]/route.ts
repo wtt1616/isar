@@ -6,7 +6,7 @@ import { RowDataPacket } from 'mysql2';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,6 +15,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await context.params;
     const availabilityId = parseInt(params.id);
     const sessionUserId = (session.user as any).id;
 
@@ -47,6 +48,9 @@ export async function DELETE(
     }, { status: 200 });
   } catch (error) {
     console.error('Error deleting availability:', error);
-    return NextResponse.json({ error: 'Failed to delete availability' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to delete availability',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

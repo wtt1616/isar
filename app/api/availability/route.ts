@@ -55,7 +55,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(rows);
   } catch (error) {
     console.error('Error fetching availability:', error);
-    return NextResponse.json({ error: 'Failed to fetch availability' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to fetch availability',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -91,6 +94,9 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Error saving availability:', error);
-    return NextResponse.json({ error: 'Failed to save availability' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to save availability',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

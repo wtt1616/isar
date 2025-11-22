@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
   const userRole = (session.user as any).role;
   const userId = parseInt((session.user as any).id);
 
+  console.log('POST /api/schedules/copy - User role:', userRole, 'User ID:', userId);
+
   // Only head_imam and admin can copy schedules
   if (userRole !== 'head_imam' && userRole !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,6 +23,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { start_date } = await request.json();
+    console.log('Copy schedule request for start_date:', start_date);
 
     if (!start_date) {
       return NextResponse.json(
@@ -95,6 +98,19 @@ export async function POST(request: NextRequest) {
       unavailabilityMap.get(key)!.add(item.user_id);
     });
 
+    // Helper function to get week number
+    const getWeekNumber = (date: Date): number => {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    };
+
+    // Calculate week number and year for the current week
+    const currentWeekNumber = getWeekNumber(currentWednesday);
+    const currentYear = currentWednesday.getFullYear();
+
     // Create new schedules for current week based on previous week
     const newSchedules = [];
     const conflictSchedules: Array<{
@@ -140,6 +156,8 @@ export async function POST(request: NextRequest) {
         prayer_time: prayerTime,
         imam_id: finalImamId,
         bilal_id: finalBilalId,
+        week_number: currentWeekNumber,
+        year: currentYear,
       });
     }
 
@@ -150,8 +168,8 @@ export async function POST(request: NextRequest) {
 
       for (const schedule of newSchedules) {
         await connection.query(
-          `INSERT INTO schedules (date, prayer_time, imam_id, bilal_id, created_by)
-           VALUES (?, ?, ?, ?, ?)
+          `INSERT INTO schedules (date, prayer_time, imam_id, bilal_id, week_number, year, created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE
            imam_id = VALUES(imam_id),
            bilal_id = VALUES(bilal_id)`,
@@ -160,6 +178,8 @@ export async function POST(request: NextRequest) {
             schedule.prayer_time,
             schedule.imam_id,
             schedule.bilal_id,
+            schedule.week_number,
+            schedule.year,
             userId,
           ]
         );
@@ -180,8 +200,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error copying schedule:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to copy schedule' },
+      { error: 'Failed to copy schedule', details: errorMessage },
       { status: 500 }
     );
   }

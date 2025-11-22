@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
         i.name as imam_name,
         b.name as bilal_name
       FROM schedules s
-      JOIN users i ON s.imam_id = i.id
-      JOIN users b ON s.bilal_id = b.id
+      LEFT JOIN users i ON s.imam_id = i.id
+      LEFT JOIN users b ON s.bilal_id = b.id
       WHERE 1=1
     `;
     const params: any[] = [];
