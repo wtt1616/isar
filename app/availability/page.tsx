@@ -182,18 +182,34 @@ export default function AvailabilityPage() {
           </div>
         )}
 
-        <h2 className="mb-4">My Availability</h2>
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="d-flex align-items-center mb-2">
+              <i className="bi bi-calendar-x me-3" style={{ fontSize: '2.5rem', color: '#059669' }}></i>
+              <div>
+                <h2 className="mb-1">My Availability</h2>
+                <p className="text-muted mb-0" style={{ fontSize: '0.95rem' }}>
+                  <i className="bi bi-info-circle me-2"></i>
+                  Manage your unavailability for prayer duties
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="row">
           <div className="col-md-6">
             <div className="card">
-              <div className="card-header bg-success text-white">
-                <h5 className="mb-0">Mark Unavailability</h5>
+              <div className="card-header text-white">
+                <h5 className="mb-0">
+                  <i className="bi bi-calendar-plus me-2"></i>Mark Unavailability
+                </h5>
               </div>
               <div className="card-body">
-                <p className="text-muted">
+                <div className="alert alert-info" style={{ fontSize: '0.9rem' }}>
+                  <i className="bi bi-info-circle me-2"></i>
                   Use this form to indicate when you cannot be on duty for prayer.
-                </p>
+                </div>
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3">
                     <label htmlFor="date" className="form-label">
@@ -256,10 +272,20 @@ export default function AvailabilityPage() {
 
                   <button
                     type="submit"
-                    className="btn btn-success w-100"
+                    className="btn btn-success w-100 d-flex align-items-center justify-content-center"
                     disabled={loading}
                   >
-                    {loading ? 'Saving...' : 'Mark as Unavailable'}
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-circle me-2"></i>
+                        Mark as Unavailable
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
@@ -268,12 +294,18 @@ export default function AvailabilityPage() {
 
           <div className="col-md-6">
             <div className="card">
-              <div className="card-header bg-info text-white">
-                <h5 className="mb-0">My Unavailable Slots</h5>
+              <div className="card-header text-white">
+                <h5 className="mb-0">
+                  <i className="bi bi-list-check me-2"></i>My Unavailable Slots
+                </h5>
               </div>
               <div className="card-body">
                 {unavailableSlots.length === 0 ? (
-                  <p className="text-muted">You have no unavailable slots marked.</p>
+                  <div className="empty-state text-center py-4">
+                    <i className="bi bi-check-circle" style={{ fontSize: '3rem', color: '#10b981' }}></i>
+                    <h5 className="mt-3 mb-2">All Clear!</h5>
+                    <p className="text-muted">You have no unavailable slots marked. You are available for all prayer duties.</p>
+                  </div>
                 ) : (
                   <>
                     <div className="mb-3">
