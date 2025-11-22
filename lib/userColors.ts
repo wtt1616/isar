@@ -35,7 +35,12 @@ const usedColorIndices = new Set<number>();
  * Get a consistent color for a user based on their ID
  * Ensures each user gets a unique color when possible
  */
-export function getUserColor(userId: number): { bg: string; text: string; border: string } {
+export function getUserColor(userId: number | null | undefined): { bg: string; text: string; border: string } {
+  // Return default gray color if userId is null or undefined
+  if (userId === null || userId === undefined) {
+    return { bg: '#6c757d', text: '#FFFFFF', border: '#7d868f' }; // Bootstrap gray
+  }
+
   if (userColorMap.has(userId)) {
     return userColorMap.get(userId)!;
   }
