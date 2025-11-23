@@ -139,13 +139,14 @@ export async function PUT(request: NextRequest) {
 
     if (transaction.length > 0) {
       // Update categorized count for the statement
+      // Categorized = has category assigned (either penerimaan OR pembayaran category)
       await pool.query(
         `UPDATE bank_statements
          SET categorized_count = (
            SELECT COUNT(*)
            FROM financial_transactions
            WHERE statement_id = ?
-           AND transaction_type != 'uncategorized'
+           AND (category_penerimaan IS NOT NULL OR category_pembayaran IS NOT NULL)
          )
          WHERE id = ?`,
         [transaction[0].statement_id, transaction[0].statement_id]

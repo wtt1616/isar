@@ -200,10 +200,10 @@ export default function FinancialManagementPage() {
                           </button>
                           <button
                             className="btn btn-sm btn-outline-success"
-                            onClick={() => router.push(`/financial/reports?month=${statement.month}&year=${statement.year}`)}
+                            onClick={() => router.push(`/dashboard/reports/buku-tunai?month=${statement.month}&year=${statement.year}`)}
                           >
-                            <i className="bi bi-graph-up me-1"></i>
-                            Laporan
+                            <i className="bi bi-file-earmark-text me-1"></i>
+                            Buku Tunai
                           </button>
                         </td>
                       </tr>

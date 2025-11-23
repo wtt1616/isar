@@ -101,15 +101,44 @@ export default function Navbar() {
             )}
 
             {(userRole === 'admin' || userRole === 'bendahari' || userRole === 'head_imam') && (
-              <li className="nav-item">
-                <Link
-                  className={`nav-link ${pathname.startsWith('/financial') ? 'active' : ''}`}
-                  href="/financial"
-                >
-                  <i className="bi bi-cash-coin me-1"></i>
-                  Kewangan
-                </Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link ${pathname.startsWith('/financial') && !pathname.startsWith('/dashboard/reports') ? 'active' : ''}`}
+                    href="/financial"
+                  >
+                    <i className="bi bi-cash-coin me-1"></i>
+                    Kewangan
+                  </Link>
+                </li>
+                <li className="nav-item dropdown">
+                  <a
+                    className={`nav-link dropdown-toggle ${pathname.startsWith('/dashboard/reports') ? 'active' : ''}`}
+                    href="#"
+                    id="reportsDropdown"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <i className="bi bi-file-earmark-text me-1"></i>
+                    Laporan
+                  </a>
+                  <ul className="dropdown-menu" aria-labelledby="reportsDropdown">
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/anggaran">
+                        <i className="bi bi-graph-up me-2"></i>
+                        BR-KMS-001: Laporan Anggaran
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/buku-tunai">
+                        <i className="bi bi-journal-text me-2"></i>
+                        BR-KMS-002: Buku Tunai
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              </>
             )}
 
             {(userRole === 'imam' || userRole === 'bilal') && (

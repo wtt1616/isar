@@ -13,6 +13,7 @@ export default function TransactionsPage() {
   const statementId = searchParams.get('statement_id');
 
   const [transactions, setTransactions] = useState<FinancialTransaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<FinancialTransaction[]>([]); // Store all transactions for counts
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'uncategorized' | 'penerimaan' | 'pembayaran'>('all');
   const [selectedTransaction, setSelectedTransaction] = useState<FinancialTransaction | null>(null);
@@ -65,12 +66,36 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const filterParam = filter === 'all' ? '' : `&type=${filter}`;
-      const response = await fetch(`/api/financial/transactions?statement_id=${statementId}${filterParam}`);
+      // Always fetch ALL transactions first
+      const response = await fetch(`/api/financial/transactions?statement_id=${statementId}`);
 
       if (response.ok) {
         const data = await response.json();
-        setTransactions(data);
+        console.log('Fetched transactions:', data.length);
+        console.log('Transaction breakdown:', {
+          uncategorized: data.filter((t: FinancialTransaction) => !t.category_penerimaan && !t.category_pembayaran).length,
+          penerimaan_records: data.filter((t: FinancialTransaction) => t.credit_amount && t.credit_amount > 0).length,
+          pembayaran_records: data.filter((t: FinancialTransaction) => t.debit_amount && t.debit_amount > 0).length,
+        });
+
+        setAllTransactions(data); // Store all for counts
+
+        // Filter for display
+        if (filter === 'all') {
+          setTransactions(data);
+        } else if (filter === 'uncategorized') {
+          // Uncategorized = no category assigned (both categories are NULL)
+          const filtered = data.filter((t: FinancialTransaction) => !t.category_penerimaan && !t.category_pembayaran);
+          setTransactions(filtered);
+        } else if (filter === 'penerimaan') {
+          // Penerimaan = has credit_amount
+          const filtered = data.filter((t: FinancialTransaction) => t.credit_amount && t.credit_amount > 0);
+          setTransactions(filtered);
+        } else if (filter === 'pembayaran') {
+          // Pembayaran = has debit_amount
+          const filtered = data.filter((t: FinancialTransaction) => t.debit_amount && t.debit_amount > 0);
+          setTransactions(filtered);
+        }
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -82,13 +107,24 @@ export default function TransactionsPage() {
   const handleCategorize = (transaction: FinancialTransaction) => {
     setSelectedTransaction(transaction);
 
-    // Pre-fill form based on transaction amounts
-    if (transaction.credit_amount && transaction.credit_amount > 0) {
+    // Pre-fill form based on existing category or suggest based on amounts
+    if (transaction.category_penerimaan) {
       setTransactionType('penerimaan');
-      setCategoryPenerimaan(transaction.category_penerimaan || '');
-    } else if (transaction.debit_amount && transaction.debit_amount > 0) {
+      setCategoryPenerimaan(transaction.category_penerimaan);
+      setCategoryPembayaran('');
+    } else if (transaction.category_pembayaran) {
       setTransactionType('pembayaran');
-      setCategoryPembayaran(transaction.category_pembayaran || '');
+      setCategoryPembayaran(transaction.category_pembayaran);
+      setCategoryPenerimaan('');
+    } else {
+      // Suggest type based on transaction amounts
+      if (transaction.credit_amount && transaction.credit_amount > 0) {
+        setTransactionType('penerimaan');
+      } else if (transaction.debit_amount && transaction.debit_amount > 0) {
+        setTransactionType('pembayaran');
+      }
+      setCategoryPenerimaan('');
+      setCategoryPembayaran('');
     }
 
     setNotes(transaction.notes || '');
@@ -143,9 +179,14 @@ export default function TransactionsPage() {
     return `RM ${amount.toLocaleString('ms-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const uncategorizedCount = transactions.filter(t => t.transaction_type === 'uncategorized').length;
-  const penerimaanCount = transactions.filter(t => t.transaction_type === 'penerimaan').length;
-  const pembayaranCount = transactions.filter(t => t.transaction_type === 'pembayaran').length;
+  // Calculate counts from ALL transactions, not filtered ones
+  // Uncategorized = both categories are NULL
+  const uncategorizedCount = allTransactions.filter(t => !t.category_penerimaan && !t.category_pembayaran).length;
+  // Penerimaan = has credit_amount
+  const penerimaanCount = allTransactions.filter(t => t.credit_amount && t.credit_amount > 0).length;
+  // Pembayaran = has debit_amount
+  const pembayaranCount = allTransactions.filter(t => t.debit_amount && t.debit_amount > 0).length;
+  const totalCount = allTransactions.length;
 
   if (status === 'loading' || loading) {
     return (
@@ -184,7 +225,7 @@ export default function TransactionsPage() {
                 className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
                 onClick={() => setFilter('all')}
               >
-                Semua ({transactions.length})
+                Semua ({totalCount})
               </button>
               <button
                 className={`btn ${filter === 'uncategorized' ? 'btn-warning' : 'btn-outline-warning'}`}
@@ -216,8 +257,10 @@ export default function TransactionsPage() {
                 <thead className="table-light sticky-top">
                   <tr>
                     <th style={{ width: '100px' }}>Tarikh</th>
+                    <th style={{ width: '120px' }}>No. EFT</th>
                     <th>Penerangan</th>
                     <th style={{ width: '180px' }}>Nama Pengirim/Penerima</th>
+                    <th style={{ width: '180px' }}>Butiran Pembayaran</th>
                     <th style={{ width: '120px' }} className="text-end">Debit (RM)</th>
                     <th style={{ width: '120px' }} className="text-end">Kredit (RM)</th>
                     <th style={{ width: '100px' }}>Jenis</th>
@@ -228,7 +271,7 @@ export default function TransactionsPage() {
                 <tbody>
                   {transactions.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-4 text-muted">
+                      <td colSpan={10} className="text-center py-4 text-muted">
                         Tiada transaksi dijumpai
                       </td>
                     </tr>
@@ -244,14 +287,15 @@ export default function TransactionsPage() {
                           </small>
                         </td>
                         <td>
-                          <small>
-                            {transaction.transaction_description}
-                            {transaction.payment_details && (
-                              <div className="text-muted">{transaction.payment_details}</div>
-                            )}
-                          </small>
+                          <small>{transaction.customer_eft_no || '-'}</small>
                         </td>
-                        <td><small>{transaction.sender_recipient_name}</small></td>
+                        <td>
+                          <small>{transaction.transaction_description || '-'}</small>
+                        </td>
+                        <td><small>{transaction.sender_recipient_name || '-'}</small></td>
+                        <td>
+                          <small className="text-muted">{transaction.payment_details || '-'}</small>
+                        </td>
                         <td className="text-end">
                           {transaction.debit_amount ? (
                             <span className="text-danger fw-bold">
@@ -267,12 +311,12 @@ export default function TransactionsPage() {
                           ) : '-'}
                         </td>
                         <td>
-                          {transaction.transaction_type === 'uncategorized' ? (
-                            <span className="badge bg-secondary">Belum</span>
-                          ) : transaction.transaction_type === 'penerimaan' ? (
+                          {transaction.credit_amount && transaction.credit_amount > 0 ? (
                             <span className="badge bg-success">Terima</span>
-                          ) : (
+                          ) : transaction.debit_amount && transaction.debit_amount > 0 ? (
                             <span className="badge bg-danger">Bayar</span>
+                          ) : (
+                            <span className="badge bg-secondary">-</span>
                           )}
                         </td>
                         <td>

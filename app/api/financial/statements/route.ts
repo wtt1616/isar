@@ -127,12 +127,13 @@ export async function POST(request: NextRequest) {
         const creditAmount = parseAmount(row[8]);
         const balance = parseAmount(row[9]);
 
-        // Determine transaction type based on debit/credit
-        let transactionType = 'uncategorized';
-        if (creditAmount && creditAmount > 0) {
-          transactionType = 'penerimaan';
-        } else if (debitAmount && debitAmount > 0) {
+        // Determine transaction type based on credit/debit
+        // But leave category as NULL (uncategorized) for manual categorization
+        let transactionType = 'penerimaan';
+        if (debitAmount && debitAmount > 0) {
           transactionType = 'pembayaran';
+        } else if (creditAmount && creditAmount > 0) {
+          transactionType = 'penerimaan';
         }
 
         await pool.query(
@@ -140,8 +141,8 @@ export async function POST(request: NextRequest) {
             (statement_id, transaction_date, customer_eft_no, transaction_code,
              transaction_description, ref_cheque_no, servicing_branch,
              debit_amount, credit_amount, balance, sender_recipient_name,
-             payment_details, transaction_type)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             payment_details, transaction_type, category_penerimaan, category_pembayaran)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             statementId,
             transactionDate,
@@ -156,6 +157,8 @@ export async function POST(request: NextRequest) {
             row[10] || null,
             row[11] || null,
             transactionType,
+            null, // category_penerimaan - NULL = uncategorized
+            null, // category_pembayaran - NULL = uncategorized
           ]
         );
 
