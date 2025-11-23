@@ -100,6 +100,18 @@ export default function Navbar() {
               </>
             )}
 
+            {(userRole === 'admin' || userRole === 'bendahari' || userRole === 'head_imam') && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${pathname.startsWith('/financial') ? 'active' : ''}`}
+                  href="/financial"
+                >
+                  <i className="bi bi-cash-coin me-1"></i>
+                  Kewangan
+                </Link>
+              </li>
+            )}
+
             {(userRole === 'imam' || userRole === 'bilal') && (
               <li className="nav-item">
                 <Link

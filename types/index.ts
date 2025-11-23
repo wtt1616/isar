@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'head_imam' | 'imam' | 'bilal' | 'inventory_staff';
+export type UserRole = 'admin' | 'head_imam' | 'imam' | 'bilal' | 'inventory_staff' | 'bendahari';
 export type PrayerTime = 'Subuh' | 'Zohor' | 'Asar' | 'Maghrib' | 'Isyak';
 
 export interface User {
@@ -82,4 +82,63 @@ export interface Preacher {
   is_active: number;
   created_at: Date;
   updated_at: Date;
+}
+
+// Financial Management Types
+export type TransactionType = 'penerimaan' | 'pembayaran' | 'uncategorized';
+
+export type PenerimaanCategory =
+  | 'Sumbangan Am'
+  | 'Sumbangan Khas (Amanah)'
+  | 'Hasil Sewaan/Penjanaan Ekonomi'
+  | 'Tahlil'
+  | 'Sumbangan Elaun'
+  | 'Hibah Pelaburan'
+  | 'Deposit'
+  | 'Hibah Bank'
+  | 'Lain-lain Terimaan';
+
+export type PembayaranCategory =
+  | 'Pentadbiran'
+  | 'Pengurusan Sumber Manusia'
+  | 'Pembangunan dan Penyelenggaraan'
+  | 'Dakwah dan Pengimarahan'
+  | 'Khidmat Sosial dan Kemasyarakatan'
+  | 'Pembelian Aset'
+  | 'Perbelanjaan Khas (Amanah)'
+  | 'Pelbagai';
+
+export interface BankStatement {
+  id: number;
+  filename: string;
+  upload_date: Date;
+  month: number;
+  year: number;
+  uploaded_by: number;
+  total_transactions: number;
+  categorized_count: number;
+  uploader_name?: string;
+}
+
+export interface FinancialTransaction {
+  id: number;
+  statement_id: number;
+  transaction_date: Date;
+  customer_eft_no?: string;
+  transaction_code?: string;
+  transaction_description?: string;
+  ref_cheque_no?: string;
+  servicing_branch?: string;
+  debit_amount?: number;
+  credit_amount?: number;
+  balance: number;
+  sender_recipient_name?: string;
+  payment_details?: string;
+  transaction_type: TransactionType;
+  category_penerimaan?: PenerimaanCategory;
+  category_pembayaran?: PembayaranCategory;
+  notes?: string;
+  categorized_by?: number;
+  categorized_at?: Date;
+  created_at: Date;
 }
