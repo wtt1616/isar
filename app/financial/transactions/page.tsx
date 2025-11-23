@@ -19,6 +19,9 @@ export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<FinancialTransaction | null>(null);
   const [showCategorizeModal, setShowCategorizeModal] = useState(false);
   const [categorizing, setCategorizing] = useState(false);
+  const [autoCategorizing, setAutoCategorizing] = useState(false);
+  const [showAutoPreview, setShowAutoPreview] = useState(false);
+  const [autoPreviewData, setAutoPreviewData] = useState<any>(null);
 
   // Form states
   const [transactionType, setTransactionType] = useState<'penerimaan' | 'pembayaran'>('penerimaan');
@@ -174,6 +177,49 @@ export default function TransactionsPage() {
     setNotes('');
   };
 
+  const handleAutoCategorize = async (preview = true) => {
+    if (!statementId) return;
+
+    try {
+      setAutoCategorizing(true);
+
+      const response = await fetch('/api/financial/auto-categorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          statement_id: statementId,
+          preview: preview
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (preview) {
+          setAutoPreviewData(data);
+          setShowAutoPreview(true);
+        } else {
+          // Applied successfully
+          setShowAutoPreview(false);
+          fetchTransactions();
+          alert(`Berjaya! ${data.updated_count} transaksi telah dikategorikan.`);
+        }
+      } else {
+        const error = await response.json();
+        alert('Gagal: ' + (error.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error auto-categorizing:', error);
+      alert('Ralat semasa jana kategori');
+    } finally {
+      setAutoCategorizing(false);
+    }
+  };
+
+  const handleApplyAutoCategorize = () => {
+    handleAutoCategorize(false);
+  };
+
   const formatCurrency = (amount: number | undefined) => {
     if (!amount) return '-';
     return `RM ${amount.toLocaleString('ms-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -219,7 +265,7 @@ export default function TransactionsPage() {
 
         {/* Filter Tabs */}
         <div className="row mb-3">
-          <div className="col">
+          <div className="col-md-8">
             <div className="btn-group" role="group">
               <button
                 className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
@@ -246,6 +292,34 @@ export default function TransactionsPage() {
                 Pembayaran ({pembayaranCount})
               </button>
             </div>
+          </div>
+          <div className="col-md-4 text-end">
+            <button
+              className="btn btn-info me-2"
+              onClick={() => router.push('/financial/keywords')}
+              title="Urus keyword untuk auto-kategorisasi"
+            >
+              <i className="bi bi-key me-1"></i>
+              Urus Keyword
+            </button>
+            <button
+              className="btn btn-success"
+              onClick={() => handleAutoCategorize(true)}
+              disabled={autoCategorizing || uncategorizedCount === 0}
+              title="Jana kategori secara automatik berdasarkan keyword"
+            >
+              {autoCategorizing ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2"></span>
+                  Memproses...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-magic me-1"></i>
+                  Jana Kategori
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -483,6 +557,102 @@ export default function TransactionsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Categorize Preview Modal */}
+      {showAutoPreview && autoPreviewData && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Pratonton Jana Kategori</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowAutoPreview(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="alert alert-info">
+                  <i className="bi bi-info-circle me-2"></i>
+                  <strong>{autoPreviewData.matches_found}</strong> daripada <strong>{autoPreviewData.total_transactions}</strong> transaksi dijumpai padanan dengan keyword.
+                </div>
+
+                {autoPreviewData.matches_found > 0 ? (
+                  <>
+                    <p className="mb-2">Transaksi berikut akan dikategorikan:</p>
+                    <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                      <table className="table table-sm table-bordered">
+                        <thead className="table-light sticky-top">
+                          <tr>
+                            <th>No. EFT / Butiran</th>
+                            <th>Keyword</th>
+                            <th>Kategori</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {autoPreviewData.updates.map((update: any, index: number) => (
+                            <tr key={index}>
+                              <td>
+                                <small className="text-muted d-block">
+                                  {update.search_text.substring(0, 80)}...
+                                </small>
+                              </td>
+                              <td>
+                                <span className="badge bg-secondary">{update.matched_keyword}</span>
+                              </td>
+                              <td>
+                                {update.category_penerimaan && (
+                                  <span className="badge bg-success">{update.category_penerimaan}</span>
+                                )}
+                                {update.category_pembayaran && (
+                                  <span className="badge bg-danger">{update.category_pembayaran}</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <div className="alert alert-warning">
+                    Tiada transaksi yang sepadan dengan keyword. Cuba tambah keyword baru di halaman Urus Keyword.
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowAutoPreview(false)}
+                >
+                  Batal
+                </button>
+                {autoPreviewData.matches_found > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-success"
+                    onClick={handleApplyAutoCategorize}
+                    disabled={autoCategorizing}
+                  >
+                    {autoCategorizing ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Memproses...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-circle me-2"></i>
+                        Teruskan ({autoPreviewData.matches_found} transaksi)
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

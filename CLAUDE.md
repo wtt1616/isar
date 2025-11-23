@@ -4,6 +4,7 @@ This document tracks all features and changes implemented with Claude Code assis
 
 ## Table of Contents
 - [Recent Changes](#recent-changes)
+- [Feature: Auto-Categorization for Financial Transactions](#feature-auto-categorization-for-financial-transactions)
 - [Feature: User Profile Management](#feature-user-profile-management)
 - [Feature: Color-Coded Schedules](#feature-color-coded-schedules)
 - [Deployment History](#deployment-history)
@@ -11,6 +12,14 @@ This document tracks all features and changes implemented with Claude Code assis
 ---
 
 ## Recent Changes
+
+### 2025-11-23: Auto-Categorization System for Financial Transactions
+
+Added intelligent auto-categorization system for financial transactions using keyword matching:
+
+1. **Keyword Management** - Bendahari can manage keywords for automatic category detection
+2. **Auto-Categorization** - Automatically categorize transactions based on configured keywords
+3. **Preview System** - Preview matches before applying categorization
 
 ### 2025-11-17: User Profile & Color-Coded Schedules
 
@@ -144,6 +153,223 @@ Implemented unique color coding for each Imam and Bilal in schedules to help Hea
 - Color legend hidden in print view
 - Border colors maintained for clarity
 - Optimized for A4 landscape printing
+
+---
+
+## Feature: Auto-Categorization for Financial Transactions
+
+### Overview
+Implemented intelligent keyword-based auto-categorization system that automatically assigns categories to financial transactions (penerimaan and pembayaran) by matching keywords in transaction details.
+
+### Problem Solved
+Previously, Bendahari had to manually categorize every transaction, which was time-consuming and error-prone. This feature automates the process by matching keywords in the transaction's `customer_eft_no` and `payment_details` fields.
+
+### Files Created
+
+#### 1. Database Migration Files
+
+**`migrations/create_rujukan_kategori.sql`**
+- Creates `rujukan_kategori` table for storing keyword mappings
+- Fields:
+  - `id`: Primary key
+  - `jenis_transaksi`: ENUM('penerimaan', 'pembayaran')
+  - `kategori_nama`: Name of category (matches PenerimaanCategory or PembayaranCategory)
+  - `keyword`: The search keyword
+  - `aktif`: Boolean to enable/disable keyword
+  - `created_at`, `updated_at`: Timestamps
+- Indexes on `jenis_transaksi`, `keyword`, `aktif`, and `kategori_nama` for performance
+
+**`migrations/seed_rujukan_kategori.sql`**
+- Seeds initial keyword data from `kategori.csv`
+- **Penerimaan keywords**: infaq, wakaf, karpet, kopiah, tahlil, korban, etc.
+- **Pembayaran keywords**: elaun, cleaner, baiki, servis, program, etc.
+- Total ~40 initial keywords across all categories
+
+#### 2. API Endpoints
+
+**`app/api/financial/keywords/route.ts`**
+- **GET**: Fetch all keywords or filter by `jenis_transaksi`
+- **POST**: Create new keyword (Bendahari/Admin only)
+  - Validates jenis_transaksi and kategori_nama
+  - Prevents duplicate keywords for same category
+- **PUT**: Update keyword (modify keyword text, category, or active status)
+- **DELETE**: Remove keyword by ID
+- Authorization: bendahari, admin, head_imam can view; bendahari and admin can modify
+
+**`app/api/financial/auto-categorize/route.ts`**
+- **POST**: Auto-categorize transactions based on keywords
+- Features:
+  - Preview mode: Returns matches without applying changes
+  - Concatenates `customer_eft_no + payment_details` for matching
+  - Case-insensitive partial matching
+  - Longest keyword first (sorted by LENGTH DESC) for most specific matches
+  - Only updates uncategorized transactions
+  - Tracks who categorized and when (`categorized_by`, `categorized_at`)
+- Request body:
+  ```json
+  {
+    "statement_id": 123,
+    "transaction_ids": [1, 2, 3], // optional: specific transactions
+    "preview": true // if true, only return matches without updating
+  }
+  ```
+- Response (preview mode):
+  ```json
+  {
+    "preview": true,
+    "total_transactions": 100,
+    "matches_found": 45,
+    "updates": [
+      {
+        "id": 1,
+        "category_penerimaan": "Sumbangan Am",
+        "matched_keyword": "infaq",
+        "search_text": "TRF123 Sumbangan Infaq Masjid"
+      }
+    ]
+  }
+  ```
+
+#### 3. UI Components
+
+**`app/financial/keywords/page.tsx`**
+- Keyword management interface for Bendahari
+- Features:
+  - View keywords grouped by jenis_transaksi and kategori
+  - Filter by penerimaan/pembayaran/all
+  - Add new keywords with modal form
+  - Edit existing keywords
+  - Toggle active/inactive status
+  - Delete keywords with confirmation
+  - Color-coded badges (green for penerimaan, red for pembayaran)
+  - Responsive card-based layout
+
+**Updated: `app/financial/transactions/page.tsx`**
+- Added "Jana Kategori" button next to filter tabs
+- Added "Urus Keyword" button for quick access to keyword management
+- Auto-categorization preview modal showing:
+  - Number of matches found
+  - List of transactions that will be categorized
+  - Matched keyword for each transaction
+  - Proposed category
+  - Confirm/Cancel options
+- Button disabled when no uncategorized transactions exist
+
+#### 4. TypeScript Types
+
+**Updated: `types/index.ts`**
+```typescript
+export interface RujukanKategori {
+  id: number;
+  jenis_transaksi: 'penerimaan' | 'pembayaran';
+  kategori_nama: string; // PenerimaanCategory | PembayaranCategory
+  keyword: string;
+  aktif: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+```
+
+### How It Works
+
+#### Matching Algorithm
+1. Fetch all active keywords from `rujukan_kategori` (sorted by keyword length DESC)
+2. For each transaction:
+   - Concatenate `customer_eft_no + payment_details` (e.g., "TRF001 Sumbangan Infaq")
+   - Convert to lowercase for case-insensitive matching
+   - Determine if transaction is penerimaan (has credit_amount) or pembayaran (has debit_amount)
+3. Loop through keywords:
+   - Check if keyword exists in concatenated text
+   - Match jenis_transaksi (penerimaan keywords only match penerimaan transactions)
+   - Take first match (longest/most specific due to sort order)
+4. Only update if transaction is currently uncategorized
+
+#### Example Scenarios
+
+**Scenario 1: Penerimaan Transaction**
+```
+Transaction:
+- customer_eft_no: "TRF12345"
+- payment_details: "Sumbangan Infaq untuk Masjid"
+- credit_amount: 500.00
+
+Search text: "trf12345 sumbangan infaq untuk masjid"
+Matched keyword: "infaq" → Category: "Sumbangan Am"
+Result: category_penerimaan = "Sumbangan Am"
+```
+
+**Scenario 2: Pembayaran Transaction**
+```
+Transaction:
+- customer_eft_no: "PAY99"
+- payment_details: "Bayaran elaun Imam bulan Jun"
+- debit_amount: 1000.00
+
+Search text: "pay99 bayaran elaun imam bulan jun"
+Matched keyword: "elaun" → Category: "Pentadbiran"
+Result: category_pembayaran = "Pentadbiran"
+```
+
+### Usage Workflow
+
+1. **Initial Setup** (One-time):
+   - Run database migrations to create `rujukan_kategori` table
+   - Run seed SQL to import initial keywords from `kategori.csv`
+
+2. **Keyword Management** (As needed):
+   - Bendahari navigates to `/financial/keywords`
+   - Add/edit/delete keywords based on common transaction patterns
+   - Enable/disable keywords without deleting them
+
+3. **Auto-Categorization**:
+   - Bendahari uploads bank statement
+   - Navigates to transactions page
+   - Clicks "Jana Kategori" button
+   - Reviews preview showing matched transactions
+   - Clicks "Teruskan" to apply categorization
+   - System updates only uncategorized transactions
+   - Manual override still possible for any transaction
+
+### Database Schema
+
+```sql
+CREATE TABLE rujukan_kategori (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  jenis_transaksi ENUM('penerimaan', 'pembayaran') NOT NULL,
+  kategori_nama VARCHAR(255) NOT NULL,
+  keyword VARCHAR(255) NOT NULL,
+  aktif BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_jenis_transaksi (jenis_transaksi),
+  INDEX idx_keyword (keyword),
+  INDEX idx_aktif (aktif),
+  INDEX idx_kategori_nama (kategori_nama)
+);
+```
+
+### Security & Access Control
+- **View Keywords**: bendahari, admin, head_imam
+- **Manage Keywords**: bendahari, admin only
+- **Auto-Categorize**: bendahari, admin, head_imam
+- All operations require valid session authentication
+- Audit trail: `categorized_by` and `categorized_at` tracked for all auto-categorized transactions
+
+### Benefits
+- ⚡ **Time Saving**: Categorize dozens of transactions in seconds instead of manually one-by-one
+- 🎯 **Accuracy**: Consistent categorization based on predefined rules
+- 📊 **Flexibility**: Easy to add new keywords as new transaction patterns emerge
+- 🔍 **Transparency**: Preview before applying changes
+- 📝 **Audit Trail**: Track when and by whom transactions were categorized
+- 🔄 **Non-Destructive**: Only affects uncategorized transactions; manual categorizations preserved
+
+### Future Enhancements
+- **Keyword Priority**: Allow setting priority for keywords that may match multiple categories
+- **Bulk Import**: Import keywords from CSV file
+- **Learning Mode**: Suggest new keywords based on manually categorized transactions
+- **Statistics**: Show keyword match rate and effectiveness
+- **Regular Expressions**: Support regex patterns for advanced matching
+- **Category Rules**: Complex rules combining multiple keywords with AND/OR logic
 
 ---
 

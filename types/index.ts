@@ -142,3 +142,13 @@ export interface FinancialTransaction {
   categorized_at?: Date;
   created_at: Date;
 }
+
+export interface RujukanKategori {
+  id: number;
+  jenis_transaksi: 'penerimaan' | 'pembayaran';
+  kategori_nama: string; // PenerimaanCategory | PembayaranCategory
+  keyword: string;
+  aktif: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
