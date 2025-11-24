@@ -60,6 +60,15 @@ export default function Navbar() {
                 </li>
                 <li className="nav-item">
                   <Link
+                    className={`nav-link ${pathname === '/dashboard/unavailability' ? 'active' : ''}`}
+                    href="/dashboard/unavailability"
+                  >
+                    <i className="bi bi-calendar-x me-1"></i>
+                    Unavailability
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
                     className={`nav-link ${pathname === '/dashboard/whatsapp-test' ? 'active' : ''}`}
                     href="/dashboard/whatsapp-test"
                   >
