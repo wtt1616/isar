@@ -21,6 +21,9 @@ export default function FinancialManagementPage() {
   const [statementToDelete, setStatementToDelete] = useState<BankStatement | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState('');
+  const [openingBalance, setOpeningBalance] = useState('');
+  const [suggestedBalance, setSuggestedBalance] = useState<number | null>(null);
+  const [balanceMessage, setBalanceMessage] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -57,10 +60,38 @@ export default function FinancialManagementPage() {
     }
   };
 
+  const fetchSuggestedBalance = async (month: string, year: string) => {
+    if (!month || !year) return;
+
+    try {
+      const response = await fetch(`/api/financial/statements?action=get_opening_balance&month=${month}&year=${year}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.opening_balance !== null) {
+          setSuggestedBalance(data.opening_balance);
+          setOpeningBalance(data.opening_balance.toFixed(2));
+          setBalanceMessage(`✓ ${data.message}: RM ${data.opening_balance.toFixed(2)}`);
+        } else {
+          setSuggestedBalance(null);
+          setOpeningBalance('');
+          setBalanceMessage('⚠ ' + data.message + '. Sila masukkan baki awal secara manual.');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching suggested balance:', error);
+      setBalanceMessage('');
+    }
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || !selectedMonth || !selectedYear) {
       setUploadMessage('Sila pilih fail, bulan dan tahun');
+      return;
+    }
+
+    if (!openingBalance || openingBalance.trim() === '') {
+      setUploadMessage('Sila masukkan baki awal');
       return;
     }
 
@@ -72,6 +103,7 @@ export default function FinancialManagementPage() {
       formData.append('file', selectedFile);
       formData.append('month', selectedMonth);
       formData.append('year', selectedYear);
+      formData.append('opening_balance', openingBalance);
 
       const response = await fetch('/api/financial/statements', {
         method: 'POST',
@@ -85,6 +117,9 @@ export default function FinancialManagementPage() {
         setSelectedFile(null);
         setSelectedMonth('');
         setSelectedYear('');
+        setOpeningBalance('');
+        setSuggestedBalance(null);
+        setBalanceMessage('');
         setShowUploadModal(false);
         fetchStatements();
       } else {
@@ -409,7 +444,12 @@ export default function FinancialManagementPage() {
                       <select
                         className="form-select"
                         value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedMonth(e.target.value);
+                          if (e.target.value && selectedYear) {
+                            fetchSuggestedBalance(e.target.value, selectedYear);
+                          }
+                        }}
                         required
                       >
                         <option value="">Pilih Bulan</option>
@@ -426,7 +466,12 @@ export default function FinancialManagementPage() {
                       <select
                         className="form-select"
                         value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedYear(e.target.value);
+                          if (selectedMonth && e.target.value) {
+                            fetchSuggestedBalance(selectedMonth, e.target.value);
+                          }
+                        }}
                         required
                       >
                         <option value="">Pilih Tahun</option>
@@ -436,6 +481,27 @@ export default function FinancialManagementPage() {
                           </option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Baki Awal (RM)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="form-control"
+                      value={openingBalance}
+                      onChange={(e) => setOpeningBalance(e.target.value)}
+                      placeholder="0.00"
+                      required
+                    />
+                    {balanceMessage && (
+                      <div className={`form-text ${balanceMessage.startsWith('✓') ? 'text-success' : 'text-warning'}`}>
+                        {balanceMessage}
+                      </div>
+                    )}
+                    <div className="form-text">
+                      Baki awal bulan (dari baki akhir bulan sebelum). Sistem akan cuba cadangkan nilai ini secara automatik.
                     </div>
                   </div>
 

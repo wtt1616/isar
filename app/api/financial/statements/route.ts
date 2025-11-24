@@ -5,7 +5,7 @@ import pool from '@/lib/db';
 import Papa from 'papaparse';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
-// GET - Fetch all bank statements
+// GET - Fetch all bank statements OR get suggested opening balance
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,6 +18,58 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+
+    // Get suggested opening balance from previous month
+    if (action === 'get_opening_balance' && month && year) {
+      const currentMonth = parseInt(month);
+      const currentYear = parseInt(year);
+
+      // Calculate previous month
+      let prevMonth = currentMonth - 1;
+      let prevYear = currentYear;
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear = currentYear - 1;
+      }
+
+      // Get previous month's statement
+      const [prevStatement] = await pool.query<RowDataPacket[]>(
+        'SELECT opening_balance FROM bank_statements WHERE month = ? AND year = ?',
+        [prevMonth, prevYear]
+      );
+
+      if (prevStatement.length === 0) {
+        return NextResponse.json({ opening_balance: null, message: 'Tiada penyata bulan sebelum' });
+      }
+
+      // Calculate closing balance of previous month
+      const [transactions] = await pool.query<RowDataPacket[]>(
+        `SELECT
+          COALESCE(SUM(credit_amount), 0) as total_credit,
+          COALESCE(SUM(debit_amount), 0) as total_debit
+        FROM financial_transactions
+        WHERE statement_id = (SELECT id FROM bank_statements WHERE month = ? AND year = ?)`,
+        [prevMonth, prevYear]
+      );
+
+      const prevOpeningBalance = prevStatement[0].opening_balance || 0;
+      const totalCredit = transactions[0]?.total_credit || 0;
+      const totalDebit = transactions[0]?.total_debit || 0;
+      const closingBalance = prevOpeningBalance + totalCredit - totalDebit;
+
+      return NextResponse.json({
+        opening_balance: closingBalance,
+        message: `Baki akhir ${prevMonth}/${prevYear}`,
+        previous_month: prevMonth,
+        previous_year: prevYear
+      });
+    }
+
+    // Default: Fetch all statements
     const [statements] = await pool.query<RowDataPacket[]>(
       `SELECT
         bs.*,
@@ -54,10 +106,19 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const month = parseInt(formData.get('month') as string);
     const year = parseInt(formData.get('year') as string);
+    const openingBalanceStr = formData.get('opening_balance') as string;
+    const openingBalance = openingBalanceStr ? parseFloat(openingBalanceStr) : null;
 
     if (!file || !month || !year) {
       return NextResponse.json(
         { error: 'File, month, and year are required' },
+        { status: 400 }
+      );
+    }
+
+    if (openingBalance === null || isNaN(openingBalance)) {
+      return NextResponse.json(
+        { error: 'Baki awal (opening balance) is required' },
         { status: 400 }
       );
     }
@@ -106,9 +167,9 @@ export async function POST(request: NextRequest) {
     // Insert bank statement record
     const [statementResult] = await pool.query<ResultSetHeader>(
       `INSERT INTO bank_statements
-        (filename, month, year, uploaded_by, total_transactions)
-      VALUES (?, ?, ?, ?, ?)`,
-      [file.name, month, year, session.user.id, transactionRows.length]
+        (filename, month, year, uploaded_by, total_transactions, opening_balance)
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [file.name, month, year, session.user.id, transactionRows.length, openingBalance]
     );
 
     const statementId = statementResult.insertId;

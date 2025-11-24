@@ -21,6 +21,14 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get('month') || (new Date().getMonth() + 1).toString();
     const year = searchParams.get('year') || new Date().getFullYear().toString();
 
+    // Get opening balance from bank statement
+    const [statementData] = await pool.query<RowDataPacket[]>(
+      'SELECT opening_balance FROM bank_statements WHERE month = ? AND year = ?',
+      [month, year]
+    );
+
+    const openingBalance = statementData.length > 0 ? parseFloat(statementData[0].opening_balance || 0) : 0;
+
     // Get all transactions for the specified month and year
     const [transactions] = await pool.query<RowDataPacket[]>(
       `SELECT
@@ -39,7 +47,7 @@ export async function GET(request: NextRequest) {
     // Group by category for summary
     const penerimaanByCategory: { [key: string]: number } = {};
     const pembayaranByCategory: { [key: string]: number } = {};
-    let runningBalance = 0;
+    let runningBalance = openingBalance; // Start with opening balance
 
     // Add running balance to each transaction
     const transactionsWithBalance = transactions.map((txn) => {
@@ -67,16 +75,19 @@ export async function GET(request: NextRequest) {
 
     const totalPenerimaan = Object.values(penerimaanByCategory).reduce((sum, val) => sum + val, 0);
     const totalPembayaran = Object.values(pembayaranByCategory).reduce((sum, val) => sum + val, 0);
+    const closingBalance = openingBalance + totalPenerimaan - totalPembayaran;
 
     return NextResponse.json({
       month,
       year,
+      openingBalance,
       transactions: transactionsWithBalance,
       penerimaanByCategory,
       pembayaranByCategory,
       totalPenerimaan,
       totalPembayaran,
-      balance: runningBalance,
+      closingBalance,
+      balance: runningBalance, // For backward compatibility
     });
   } catch (error) {
     console.error('Error generating buku tunai report:', error);

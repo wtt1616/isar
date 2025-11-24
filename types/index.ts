@@ -117,6 +117,7 @@ export interface BankStatement {
   uploaded_by: number;
   total_transactions: number;
   categorized_count: number;
+  opening_balance: number;
   uploader_name?: string;
 }
 
