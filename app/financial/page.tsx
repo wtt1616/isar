@@ -17,6 +17,10 @@ export default function FinancialManagementPage() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [uploadMessage, setUploadMessage] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [statementToDelete, setStatementToDelete] = useState<BankStatement | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -91,6 +95,43 @@ export default function FinancialManagementPage() {
       console.error('Error uploading file:', error);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDeleteClick = (statement: BankStatement) => {
+    setStatementToDelete(statement);
+    setShowDeleteModal(true);
+    setDeleteMessage('');
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!statementToDelete) return;
+
+    try {
+      setDeleting(true);
+      setDeleteMessage('');
+
+      const response = await fetch(`/api/financial/statements?id=${statementToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setDeleteMessage(`✓ ${data.message}`);
+        setTimeout(() => {
+          setShowDeleteModal(false);
+          setStatementToDelete(null);
+          fetchStatements();
+        }, 1500);
+      } else {
+        setDeleteMessage(`✗ ${data.error}`);
+      }
+    } catch (error) {
+      setDeleteMessage('✗ Gagal memadam penyata bank');
+      console.error('Error deleting statement:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -199,12 +240,21 @@ export default function FinancialManagementPage() {
                             Lihat Transaksi
                           </button>
                           <button
-                            className="btn btn-sm btn-outline-success"
+                            className="btn btn-sm btn-outline-success me-2"
                             onClick={() => router.push(`/dashboard/reports/buku-tunai?month=${statement.month}&year=${statement.year}`)}
                           >
                             <i className="bi bi-file-earmark-text me-1"></i>
                             Buku Tunai
                           </button>
+                          {['admin', 'bendahari'].includes(session?.user.role || '') && (
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDeleteClick(statement)}
+                              title="Padam penyata bank"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -215,6 +265,102 @@ export default function FinancialManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && statementToDelete && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  Pengesahan Pemadaman
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setStatementToDelete(null);
+                    setDeleteMessage('');
+                  }}
+                  disabled={deleting}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {deleteMessage && (
+                  <div className={`alert ${deleteMessage.startsWith('✓') ? 'alert-success' : 'alert-danger'}`}>
+                    {deleteMessage}
+                  </div>
+                )}
+
+                {!deleteMessage && (
+                  <>
+                    <div className="alert alert-warning">
+                      <i className="bi bi-exclamation-triangle me-2"></i>
+                      <strong>AMARAN:</strong> Tindakan ini tidak boleh dibatalkan!
+                    </div>
+
+                    <p className="mb-3">
+                      Adakah anda pasti untuk memadam penyata bank ini?
+                    </p>
+
+                    <div className="card">
+                      <div className="card-body">
+                        <h6 className="card-title">Maklumat Penyata:</h6>
+                        <ul className="mb-0">
+                          <li><strong>Bulan/Tahun:</strong> {getMonthName(statementToDelete.month)} {statementToDelete.year}</li>
+                          <li><strong>Nama Fail:</strong> {statementToDelete.filename}</li>
+                          <li><strong>Jumlah Transaksi:</strong> {statementToDelete.total_transactions}</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="alert alert-danger mt-3 mb-0">
+                      <small>
+                        <i className="bi bi-info-circle me-2"></i>
+                        Semua transaksi yang berkaitan dengan penyata ini akan turut dipadam.
+                      </small>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setStatementToDelete(null);
+                    setDeleteMessage('');
+                  }}
+                  disabled={deleting}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting || deleteMessage.startsWith('✓')}
+                >
+                  {deleting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Memadam...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-trash me-2"></i>
+                      Ya, Padam
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Upload Modal */}
       {showUploadModal && (

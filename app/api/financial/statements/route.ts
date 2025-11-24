@@ -216,6 +216,67 @@ function parseTransactionDate(dateStr: string): string | null {
   }
 }
 
+// DELETE - Remove bank statement and its transactions
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Only bendahari and admin can delete
+    if (!['admin', 'bendahari'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const statementId = searchParams.get('id');
+
+    if (!statementId) {
+      return NextResponse.json(
+        { error: 'Statement ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Check if statement exists
+    const [statement] = await pool.query<RowDataPacket[]>(
+      'SELECT id, filename, month, year FROM bank_statements WHERE id = ?',
+      [statementId]
+    );
+
+    if (statement.length === 0) {
+      return NextResponse.json(
+        { error: 'Penyata bank tidak dijumpai' },
+        { status: 404 }
+      );
+    }
+
+    // Delete transactions first (due to foreign key constraint)
+    await pool.query(
+      'DELETE FROM financial_transactions WHERE statement_id = ?',
+      [statementId]
+    );
+
+    // Delete bank statement
+    await pool.query(
+      'DELETE FROM bank_statements WHERE id = ?',
+      [statementId]
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: `Penyata bank ${statement[0].filename} berjaya dipadam`,
+    });
+  } catch (error) {
+    console.error('Error deleting bank statement:', error);
+    return NextResponse.json(
+      { error: 'Gagal memadam penyata bank' },
+      { status: 500 }
+    );
+  }
+}
+
 // Helper function to parse amount
 function parseAmount(amountStr: string): number | null {
   if (!amountStr || amountStr.trim() === '') return null;

@@ -26,7 +26,34 @@ export async function GET(request: NextRequest) {
 
     const [preachers] = await pool.query<RowDataPacket[]>(query);
 
-    return NextResponse.json({ preachers });
+    // Get base URL for constructing absolute photo URLs
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:3000';
+    const baseUrl = `${protocol}://${host}`;
+
+    // Convert photo paths to absolute URLs
+    const formattedPreachers = preachers.map(preacher => {
+      const formatPhotoUrl = (photo: string | null) => {
+        if (!photo) return null;
+        // If photo is already an absolute URL, return as is
+        if (photo.startsWith('http://') || photo.startsWith('https://')) {
+          return photo;
+        }
+        // If photo starts with /, it's a relative path from root
+        if (photo.startsWith('/')) {
+          return `${baseUrl}${photo}`;
+        }
+        // Otherwise, assume it's just filename, prepend /uploads/preachers/
+        return `${baseUrl}/uploads/preachers/${photo}`;
+      };
+
+      return {
+        ...preacher,
+        photo: formatPhotoUrl(preacher.photo)
+      };
+    });
+
+    return NextResponse.json({ preachers: formattedPreachers });
   } catch (error) {
     console.error('Error fetching preachers:', error);
     return NextResponse.json(

@@ -64,6 +64,11 @@ export async function GET(request: NextRequest) {
 
     const [schedules] = await pool.query<RowDataPacket[]>(query, params);
 
+    // Get base URL for constructing absolute photo URLs
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:3000';
+    const baseUrl = `${protocol}://${host}`;
+
     // Format dates to YYYY-MM-DD strings to avoid timezone issues
     const formattedSchedules = schedules.map(schedule => {
       // Convert Date object to YYYY-MM-DD string
@@ -74,9 +79,28 @@ export async function GET(request: NextRequest) {
       const day = String(dateObj.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
 
+      // Convert photo paths to absolute URLs if they exist
+      const formatPhotoUrl = (photo: string | null) => {
+        if (!photo) return null;
+        // If photo is already an absolute URL, return as is
+        if (photo.startsWith('http://') || photo.startsWith('https://')) {
+          return photo;
+        }
+        // If photo starts with /, it's a relative path from root
+        if (photo.startsWith('/')) {
+          return `${baseUrl}${photo}`;
+        }
+        // Otherwise, assume it's just filename, prepend /uploads/preachers/
+        return `${baseUrl}/uploads/preachers/${photo}`;
+      };
+
       return {
         ...schedule,
-        schedule_date: dateStr
+        schedule_date: dateStr,
+        subuh_preacher_photo: formatPhotoUrl(schedule.subuh_preacher_photo),
+        dhuha_preacher_photo: formatPhotoUrl(schedule.dhuha_preacher_photo),
+        maghrib_preacher_photo: formatPhotoUrl(schedule.maghrib_preacher_photo),
+        friday_preacher_photo: formatPhotoUrl(schedule.friday_preacher_photo),
       };
     });
 

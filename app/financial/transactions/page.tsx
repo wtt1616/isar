@@ -23,6 +23,10 @@ export default function TransactionsPage() {
   const [showAutoPreview, setShowAutoPreview] = useState(false);
   const [autoPreviewData, setAutoPreviewData] = useState<any>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+
   // Form states
   const [transactionType, setTransactionType] = useState<'penerimaan' | 'pembayaran'>('penerimaan');
   const [categoryPenerimaan, setCategoryPenerimaan] = useState<PenerimaanCategory | ''>('');
@@ -63,6 +67,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (session && statementId) {
       fetchTransactions();
+      setCurrentPage(1); // Reset to page 1 when filter changes
     }
   }, [session, statementId, filter]);
 
@@ -234,6 +239,17 @@ export default function TransactionsPage() {
   const pembayaranCount = allTransactions.filter(t => t.debit_amount && t.debit_amount > 0).length;
   const totalCount = allTransactions.length;
 
+  // Pagination calculations
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTransactions = transactions.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-vh-100 d-flex justify-content-center align-items-center">
@@ -343,14 +359,14 @@ export default function TransactionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.length === 0 ? (
+                  {currentTransactions.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="text-center py-4 text-muted">
                         Tiada transaksi dijumpai
                       </td>
                     </tr>
                   ) : (
-                    transactions.map((transaction) => (
+                    currentTransactions.map((transaction) => (
                       <tr key={transaction.id}>
                         <td>
                           <small>
@@ -414,6 +430,87 @@ export default function TransactionsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-between align-items-center mt-3 px-3">
+                <div className="text-muted">
+                  Menunjukkan {startIndex + 1} hingga {Math.min(endIndex, transactions.length)} daripada {transactions.length} transaksi
+                </div>
+                <nav>
+                  <ul className="pagination mb-0">
+                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        <i className="bi bi-chevron-left"></i>
+                      </button>
+                    </li>
+
+                    {/* First page */}
+                    {currentPage > 3 && (
+                      <>
+                        <li className="page-item">
+                          <button className="page-link" onClick={() => handlePageChange(1)}>
+                            1
+                          </button>
+                        </li>
+                        {currentPage > 4 && (
+                          <li className="page-item disabled">
+                            <span className="page-link">...</span>
+                          </li>
+                        )}
+                      </>
+                    )}
+
+                    {/* Page numbers around current page */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(page => {
+                        return page === currentPage ||
+                               page === currentPage - 1 ||
+                               page === currentPage + 1 ||
+                               page === currentPage - 2 ||
+                               page === currentPage + 2;
+                      })
+                      .map(page => (
+                        <li key={page} className={`page-item ${currentPage === page ? 'active' : ''}`}>
+                          <button className="page-link" onClick={() => handlePageChange(page)}>
+                            {page}
+                          </button>
+                        </li>
+                      ))}
+
+                    {/* Last page */}
+                    {currentPage < totalPages - 2 && (
+                      <>
+                        {currentPage < totalPages - 3 && (
+                          <li className="page-item disabled">
+                            <span className="page-link">...</span>
+                          </li>
+                        )}
+                        <li className="page-item">
+                          <button className="page-link" onClick={() => handlePageChange(totalPages)}>
+                            {totalPages}
+                          </button>
+                        </li>
+                      </>
+                    )}
+
+                    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            )}
           </div>
         </div>
       </div>
