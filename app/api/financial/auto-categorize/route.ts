@@ -131,6 +131,32 @@ export async function POST(request: NextRequest) {
             search_text: searchText
           });
         }
+      } else {
+        // Business Rule: If no keyword match AND special conditions met
+        // Categorize as "Sumbangan Am" if:
+        // 1. customer_eft_no is NULL
+        // 2. payment_details is NOT NULL
+        // 3. payment_details contains a positive number
+        // 4. Transaction is penerimaan (has credit_amount)
+        if (
+          isPenerimaan &&
+          !transaction.category_penerimaan &&
+          !transaction.customer_eft_no &&
+          transaction.payment_details
+        ) {
+          // Try to extract number from payment_details
+          const numericValue = parseFloat(transaction.payment_details.replace(/[^0-9.-]/g, ''));
+
+          if (!isNaN(numericValue) && numericValue > 0) {
+            updates.push({
+              id: transaction.id,
+              category_penerimaan: 'Sumbangan Am',
+              category_pembayaran: null,
+              matched_keyword: 'RULE: Sumbangan Am (payment_details > 0)',
+              search_text: searchText
+            });
+          }
+        }
       }
     }
 
