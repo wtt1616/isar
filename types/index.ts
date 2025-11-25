@@ -188,6 +188,8 @@ export interface FinancialTransaction {
   investment_type?: string; // For Hibah Pelaburan
   investment_institution?: string; // For Hibah Pelaburan
   category_pembayaran?: PembayaranCategory;
+  sub_category1_pembayaran?: string; // Sub-kategori 1 for Pembayaran
+  sub_category2_pembayaran?: string; // Sub-kategori 2 for Pembayaran
   notes?: string;
   categorized_by?: number;
   categorized_at?: Date;
