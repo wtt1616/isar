@@ -5,6 +5,13 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { FinancialTransaction, PenerimaanCategory, PembayaranCategory } from '@/types';
+import {
+  Category,
+  SubCategory,
+  hasSubCategoriesDynamic,
+  getSubCategoriesDynamic,
+  requiresInvestmentFieldsDynamic
+} from '@/lib/subCategories';
 
 export default function TransactionsPage() {
   const { data: session, status } = useSession();
@@ -27,24 +34,21 @@ export default function TransactionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
 
+  // Dynamic categories from database
+  const [penerimaanCategories, setPenerimaanCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
   // Form states
   const [transactionType, setTransactionType] = useState<'penerimaan' | 'pembayaran'>('penerimaan');
-  const [categoryPenerimaan, setCategoryPenerimaan] = useState<PenerimaanCategory | ''>('');
+  const [categoryPenerimaan, setCategoryPenerimaan] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [subCategoryPenerimaan, setSubCategoryPenerimaan] = useState<string>('');
+  const [investmentType, setInvestmentType] = useState<string>('');
+  const [investmentInstitution, setInvestmentInstitution] = useState<string>('');
   const [categoryPembayaran, setCategoryPembayaran] = useState<PembayaranCategory | ''>('');
   const [notes, setNotes] = useState('');
 
-  const penerimaanCategories: PenerimaanCategory[] = [
-    'Sumbangan Am',
-    'Sumbangan Khas (Amanah)',
-    'Hasil Sewaan/Penjanaan Ekonomi',
-    'Tahlil',
-    'Sumbangan Elaun',
-    'Hibah Pelaburan',
-    'Deposit',
-    'Hibah Bank',
-    'Lain-lain Terimaan'
-  ];
-
+  // Static pembayaran categories (not managed dynamically yet)
   const pembayaranCategories: PembayaranCategory[] = [
     'Pentadbiran',
     'Pengurusan Sumber Manusia',
@@ -64,12 +68,34 @@ export default function TransactionsPage() {
     }
   }, [status, session, router]);
 
+  // Fetch categories from database
+  useEffect(() => {
+    if (session) {
+      fetchCategories();
+    }
+  }, [session]);
+
   useEffect(() => {
     if (session && statementId) {
       fetchTransactions();
       setCurrentPage(1); // Reset to page 1 when filter changes
     }
   }, [session, statementId, filter]);
+
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const response = await fetch('/api/financial/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setPenerimaanCategories(data);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const fetchTransactions = async () => {
     try {
@@ -119,11 +145,23 @@ export default function TransactionsPage() {
     if (transaction.category_penerimaan) {
       setTransactionType('penerimaan');
       setCategoryPenerimaan(transaction.category_penerimaan);
+
+      // Find the category object
+      const category = penerimaanCategories.find(c => c.nama_kategori === transaction.category_penerimaan);
+      setSelectedCategory(category || null);
+
+      setSubCategoryPenerimaan(transaction.sub_category_penerimaan || '');
+      setInvestmentType(transaction.investment_type || '');
+      setInvestmentInstitution(transaction.investment_institution || '');
       setCategoryPembayaran('');
     } else if (transaction.category_pembayaran) {
       setTransactionType('pembayaran');
       setCategoryPembayaran(transaction.category_pembayaran);
       setCategoryPenerimaan('');
+      setSelectedCategory(null);
+      setSubCategoryPenerimaan('');
+      setInvestmentType('');
+      setInvestmentInstitution('');
     } else {
       // Suggest type based on transaction amounts
       if (transaction.credit_amount && transaction.credit_amount > 0) {
@@ -132,6 +170,10 @@ export default function TransactionsPage() {
         setTransactionType('pembayaran');
       }
       setCategoryPenerimaan('');
+      setSelectedCategory(null);
+      setSubCategoryPenerimaan('');
+      setInvestmentType('');
+      setInvestmentInstitution('');
       setCategoryPembayaran('');
     }
 
@@ -153,6 +195,9 @@ export default function TransactionsPage() {
           transaction_id: selectedTransaction.id,
           transaction_type: transactionType,
           category_penerimaan: transactionType === 'penerimaan' ? categoryPenerimaan : null,
+          sub_category_penerimaan: transactionType === 'penerimaan' ? (subCategoryPenerimaan || null) : null,
+          investment_type: transactionType === 'penerimaan' && categoryPenerimaan === 'Hibah Pelaburan' ? (investmentType || null) : null,
+          investment_institution: transactionType === 'penerimaan' && categoryPenerimaan === 'Hibah Pelaburan' ? (investmentInstitution || null) : null,
           category_pembayaran: transactionType === 'pembayaran' ? categoryPembayaran : null,
           notes: notes || null,
         }),
@@ -178,6 +223,10 @@ export default function TransactionsPage() {
     setSelectedTransaction(null);
     setTransactionType('penerimaan');
     setCategoryPenerimaan('');
+    setSelectedCategory(null);
+    setSubCategoryPenerimaan('');
+    setInvestmentType('');
+    setInvestmentInstitution('');
     setCategoryPembayaran('');
     setNotes('');
   };
@@ -585,17 +634,38 @@ export default function TransactionsPage() {
                   <div className="mb-3">
                     <label className="form-label">Kategori</label>
                     {transactionType === 'penerimaan' ? (
-                      <select
-                        className="form-select"
-                        value={categoryPenerimaan}
-                        onChange={(e) => setCategoryPenerimaan(e.target.value as PenerimaanCategory)}
-                        required
-                      >
-                        <option value="">Pilih Kategori Penerimaan</option>
-                        {penerimaanCategories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
+                      loadingCategories ? (
+                        <div className="text-center py-2">
+                          <span className="spinner-border spinner-border-sm me-2"></span>
+                          Memuat kategori...
+                        </div>
+                      ) : (
+                        <select
+                          className="form-select"
+                          value={categoryPenerimaan}
+                          onChange={(e) => {
+                            const newCategoryName = e.target.value;
+                            setCategoryPenerimaan(newCategoryName);
+
+                            // Find the category object
+                            const category = penerimaanCategories.find(c => c.nama_kategori === newCategoryName);
+                            setSelectedCategory(category || null);
+
+                            // Reset sub-category and investment fields when category changes
+                            setSubCategoryPenerimaan('');
+                            setInvestmentType('');
+                            setInvestmentInstitution('');
+                          }}
+                          required
+                        >
+                          <option value="">Pilih Kategori Penerimaan</option>
+                          {penerimaanCategories.map((cat) => (
+                            <option key={cat.id} value={cat.nama_kategori}>
+                              {cat.nama_kategori}
+                            </option>
+                          ))}
+                        </select>
+                      )
                     ) : (
                       <select
                         className="form-select"
@@ -610,6 +680,51 @@ export default function TransactionsPage() {
                       </select>
                     )}
                   </div>
+
+                  {/* Sub-Category Selection (for applicable Penerimaan categories) */}
+                  {transactionType === 'penerimaan' && selectedCategory && hasSubCategoriesDynamic(selectedCategory) && (
+                    <div className="mb-3">
+                      <label className="form-label">Sub-Kategori</label>
+                      <select
+                        className="form-select"
+                        value={subCategoryPenerimaan}
+                        onChange={(e) => setSubCategoryPenerimaan(e.target.value)}
+                      >
+                        <option value="">Pilih Sub-Kategori (Opsional)</option>
+                        {getSubCategoriesDynamic(selectedCategory).map((subCat) => (
+                          <option key={subCat} value={subCat}>{subCat}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Investment Fields (for categories with perlu_maklumat_pelaburan flag) */}
+                  {transactionType === 'penerimaan' && selectedCategory && requiresInvestmentFieldsDynamic(selectedCategory) && (
+                    <>
+                      <div className="mb-3">
+                        <label className="form-label">Jenis Pelaburan</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={investmentType}
+                          onChange={(e) => setInvestmentType(e.target.value)}
+                          placeholder="Contoh: Fixed Deposit, ASB, Saham, dll"
+                        />
+                        <small className="text-muted">Jenis pelaburan atau instrumen kewangan</small>
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Institusi Pelaburan</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={investmentInstitution}
+                          onChange={(e) => setInvestmentInstitution(e.target.value)}
+                          placeholder="Contoh: Maybank, CIMB, Tabung Haji, dll"
+                        />
+                        <small className="text-muted">Nama bank atau institusi kewangan</small>
+                      </div>
+                    </>
+                  )}
 
                   {/* Notes */}
                   <div className="mb-3">

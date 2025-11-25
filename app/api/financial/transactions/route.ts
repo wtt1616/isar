@@ -85,6 +85,9 @@ export async function PUT(request: NextRequest) {
       transaction_id,
       transaction_type,
       category_penerimaan,
+      sub_category_penerimaan,
+      investment_type,
+      investment_institution,
       category_pembayaran,
       notes,
     } = body;
@@ -116,6 +119,9 @@ export async function PUT(request: NextRequest) {
       `UPDATE financial_transactions
        SET transaction_type = ?,
            category_penerimaan = ?,
+           sub_category_penerimaan = ?,
+           investment_type = ?,
+           investment_institution = ?,
            category_pembayaran = ?,
            notes = ?,
            categorized_by = ?,
@@ -124,6 +130,9 @@ export async function PUT(request: NextRequest) {
       [
         transaction_type,
         transaction_type === 'penerimaan' ? category_penerimaan : null,
+        transaction_type === 'penerimaan' ? (sub_category_penerimaan || null) : null,
+        transaction_type === 'penerimaan' && category_penerimaan === 'Hibah Pelaburan' ? (investment_type || null) : null,
+        transaction_type === 'penerimaan' && category_penerimaan === 'Hibah Pelaburan' ? (investment_institution || null) : null,
         transaction_type === 'pembayaran' ? category_pembayaran : null,
         notes || null,
         session.user.id,

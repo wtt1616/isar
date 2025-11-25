@@ -145,6 +145,21 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'isar.myopensoft.net',
+        pathname: '/uploads/**',
+      },
+    ],
+  },
   // Disable static optimization for authenticated pages
   experimental: {
     missingSuspenseWithCSRBailout: false,

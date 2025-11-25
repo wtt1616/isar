@@ -98,6 +98,53 @@ export type PenerimaanCategory =
   | 'Hibah Bank'
   | 'Lain-lain Terimaan';
 
+// Sub-categories for Penerimaan
+export type SubCategorySumbanganAm =
+  | 'Kutipan Jumaat'
+  | 'Kutipan Harian'
+  | 'Kutipan Hari Raya'
+  | 'Sumbangan Agensi/Korporat/Syarikat/Yayasan'
+  | 'Tahlil dan Doa Selamat'
+  | 'Aktiviti dan Pengimarahan';
+
+export type SubCategorySumbanganKhas =
+  | 'Khairat Kematian'
+  | 'Pembangunan & Selenggara Wakaf'
+  | 'Yuran Pengajian'
+  | 'Pendidikan'
+  | 'Ihya Ramadhan'
+  | 'Ibadah Qurban'
+  | 'Bantuan Bencana'
+  | 'Anak Yatim';
+
+export type SubCategoryHasilSewaan =
+  | 'Telekomunikasi'
+  | 'Tanah/Bangunan/Tapak'
+  | 'Fasiliti dan Peralatan'
+  | 'Kitar Semula'
+  | 'Solar'
+  | 'Jualan Kopiah';
+
+export type SubCategorySumbanganElaun =
+  | 'Nazir'
+  | 'Imam 1'
+  | 'Imam 2'
+  | 'Bilal 1'
+  | 'Bilal 2'
+  | 'Siak 1'
+  | 'Siak 2'
+  | 'Timbalan Nazir'
+  | 'Setiausaha'
+  | 'Penolong Setiausaha'
+  | 'Bendahari';
+
+export type SubCategoryPenerimaan =
+  | SubCategorySumbanganAm
+  | SubCategorySumbanganKhas
+  | SubCategoryHasilSewaan
+  | SubCategorySumbanganElaun
+  | string; // For Hibah Pelaburan (free text)
+
 export type PembayaranCategory =
   | 'Pentadbiran'
   | 'Pengurusan Sumber Manusia'
@@ -137,6 +184,9 @@ export interface FinancialTransaction {
   payment_details?: string;
   transaction_type: TransactionType;
   category_penerimaan?: PenerimaanCategory;
+  sub_category_penerimaan?: string;
+  investment_type?: string; // For Hibah Pelaburan
+  investment_institution?: string; // For Hibah Pelaburan
   category_pembayaran?: PembayaranCategory;
   notes?: string;
   categorized_by?: number;
