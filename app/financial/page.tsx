@@ -25,6 +25,9 @@ export default function FinancialManagementPage() {
   const [suggestedBalance, setSuggestedBalance] = useState<number | null>(null);
   const [balanceMessage, setBalanceMessage] = useState('');
 
+  // Sorting state
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // desc = newest first
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
@@ -177,6 +180,17 @@ export default function FinancialManagementPage() {
 
   const getMonthName = (month: number) => monthNames[month - 1] || '';
 
+  // Sort statements by date (year and month)
+  const sortedStatements = [...statements].sort((a, b) => {
+    const dateA = a.year * 12 + a.month;
+    const dateB = b.year * 12 + b.month;
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+  });
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-vh-100 d-flex justify-content-center align-items-center">
@@ -229,7 +243,14 @@ export default function FinancialManagementPage() {
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Bulan/Tahun</th>
+                      <th
+                        style={{ cursor: 'pointer' }}
+                        onClick={toggleSortOrder}
+                        title="Klik untuk tukar susunan"
+                      >
+                        Bulan/Tahun
+                        <i className={`bi bi-arrow-${sortOrder === 'desc' ? 'down' : 'up'} ms-1`}></i>
+                      </th>
                       <th>Nama Fail</th>
                       <th>Tarikh Muat Naik</th>
                       <th>Dimuat Naik Oleh</th>
@@ -239,7 +260,7 @@ export default function FinancialManagementPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {statements.map((statement) => (
+                    {sortedStatements.map((statement) => (
                       <tr key={statement.id}>
                         <td>
                           <strong>{getMonthName(statement.month)} {statement.year}</strong>

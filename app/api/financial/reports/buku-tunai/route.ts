@@ -18,16 +18,59 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const month = searchParams.get('month') || (new Date().getMonth() + 1).toString();
-    const year = searchParams.get('year') || new Date().getFullYear().toString();
+    const month = parseInt(searchParams.get('month') || (new Date().getMonth() + 1).toString());
+    const year = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
 
-    // Get opening balance from bank statement
+    // Calculate opening balance from previous month's closing balance
+    // First, try to get opening_balance from current month's bank statement
     const [statementData] = await pool.query<RowDataPacket[]>(
       'SELECT opening_balance FROM bank_statements WHERE month = ? AND year = ?',
       [month, year]
     );
 
-    const openingBalance = statementData.length > 0 ? parseFloat(statementData[0].opening_balance || 0) : 0;
+    let openingBalance = 0;
+
+    // If current month's statement has opening_balance set, use it
+    if (statementData.length > 0 && statementData[0].opening_balance !== null && parseFloat(statementData[0].opening_balance) !== 0) {
+      openingBalance = parseFloat(statementData[0].opening_balance);
+    } else {
+      // Calculate from all previous transactions (before current month)
+      // This calculates: sum of all credits - sum of all debits for all months before current month
+      const [previousBalanceData] = await pool.query<RowDataPacket[]>(
+        `SELECT
+          COALESCE(SUM(ft.credit_amount), 0) - COALESCE(SUM(ft.debit_amount), 0) as calculated_balance
+        FROM financial_transactions ft
+        JOIN bank_statements bs ON ft.statement_id = bs.id
+        WHERE (bs.year < ? OR (bs.year = ? AND bs.month < ?))`,
+        [year, year, month]
+      );
+
+      // Also add opening balance from the earliest month if exists
+      const [earliestStatement] = await pool.query<RowDataPacket[]>(
+        `SELECT opening_balance, month, year
+        FROM bank_statements
+        WHERE opening_balance IS NOT NULL AND opening_balance != 0
+        ORDER BY year ASC, month ASC
+        LIMIT 1`
+      );
+
+      const calculatedBalance = previousBalanceData.length > 0 ? parseFloat(previousBalanceData[0].calculated_balance || 0) : 0;
+      const earliestOpeningBalance = earliestStatement.length > 0 ? parseFloat(earliestStatement[0].opening_balance || 0) : 0;
+
+      // Check if earliest statement is before or equal to current month
+      if (earliestStatement.length > 0) {
+        const earliestYear = earliestStatement[0].year;
+        const earliestMonth = earliestStatement[0].month;
+        if (earliestYear < year || (earliestYear === year && earliestMonth < month)) {
+          openingBalance = earliestOpeningBalance + calculatedBalance;
+        } else if (earliestYear === year && earliestMonth === month) {
+          // Current month is the earliest, use its opening balance
+          openingBalance = earliestOpeningBalance;
+        }
+      } else {
+        openingBalance = calculatedBalance;
+      }
+    }
 
     // Get all transactions for the specified month and year
     const [transactions] = await pool.query<RowDataPacket[]>(

@@ -22,6 +22,7 @@ interface Transaction {
 interface ReportData {
   month: string;
   year: string;
+  openingBalance: number;
   transactions: Transaction[];
   penerimaanByCategory: { [key: string]: number };
   pembayaranByCategory: { [key: string]: number };
@@ -245,6 +246,33 @@ export default function BukuTunaiPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Baris Baki Awal */}
+                  <tr className="table-info">
+                    <td></td>
+                    <td className="fw-bold">BAKI AWAL</td>
+                    <td></td>
+                    <td></td>
+                    {/* Penerimaan columns - empty */}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {/* Pembayaran columns - empty */}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {/* Baki column */}
+                    <td className="text-end fw-bold">{formatCurrency(reportData.openingBalance)}</td>
+                    <td></td>
+                  </tr>
                   {reportData.transactions.length > 0 ? (
                     reportData.transactions.map((txn, index) => (
                       <tr key={index}>

@@ -34,6 +34,12 @@ export default function TransactionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
 
+  // Sorting state
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // desc = newest first
+
+  // Category filter state
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+
   // Dynamic categories from database
   const [penerimaanCategories, setPenerimaanCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -45,20 +51,16 @@ export default function TransactionsPage() {
   const [subCategoryPenerimaan, setSubCategoryPenerimaan] = useState<string>('');
   const [investmentType, setInvestmentType] = useState<string>('');
   const [investmentInstitution, setInvestmentInstitution] = useState<string>('');
-  const [categoryPembayaran, setCategoryPembayaran] = useState<PembayaranCategory | ''>('');
+  const [categoryPembayaran, setCategoryPembayaran] = useState<string>('');
+  const [subCategory1Pembayaran, setSubCategory1Pembayaran] = useState<string>('');
+  const [subCategory2Pembayaran, setSubCategory2Pembayaran] = useState<string>('');
   const [notes, setNotes] = useState('');
 
-  // Static pembayaran categories (not managed dynamically yet)
-  const pembayaranCategories: PembayaranCategory[] = [
-    'Pentadbiran',
-    'Pengurusan Sumber Manusia',
-    'Pembangunan dan Penyelenggaraan',
-    'Dakwah dan Pengimarahan',
-    'Khidmat Sosial dan Kemasyarakatan',
-    'Pembelian Aset',
-    'Perbelanjaan Khas (Amanah)',
-    'Pelbagai'
-  ];
+  // Dynamic pembayaran categories from database
+  const [pembayaranCategories, setPembayaranCategories] = useState<any[]>([]);
+  const [subCategories1, setSubCategories1] = useState<any[]>([]);
+  const [subCategories2, setSubCategories2] = useState<any[]>([]);
+  const [loadingPembayaranCategories, setLoadingPembayaranCategories] = useState(true);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -72,6 +74,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (session) {
       fetchCategories();
+      fetchPembayaranCategories();
     }
   }, [session]);
 
@@ -94,6 +97,51 @@ export default function TransactionsPage() {
       console.error('Error fetching categories:', error);
     } finally {
       setLoadingCategories(false);
+    }
+  };
+
+  const fetchPembayaranCategories = async () => {
+    try {
+      setLoadingPembayaranCategories(true);
+      const response = await fetch('/api/financial/pembayaran-categories?include_subcategories=true');
+      if (response.ok) {
+        const data = await response.json();
+        setPembayaranCategories(data);
+      }
+    } catch (error) {
+      console.error('Error fetching pembayaran categories:', error);
+    } finally {
+      setLoadingPembayaranCategories(false);
+    }
+  };
+
+  // Handle pembayaran category change - load sub-categories1
+  const handlePembayaranCategoryChange = (categoryName: string) => {
+    setCategoryPembayaran(categoryName);
+    setSubCategory1Pembayaran('');
+    setSubCategory2Pembayaran('');
+    setSubCategories2([]);
+
+    // Find the category and its sub-categories
+    const category = pembayaranCategories.find(c => c.nama_kategori === categoryName);
+    if (category && category.subcategories1) {
+      setSubCategories1(category.subcategories1);
+    } else {
+      setSubCategories1([]);
+    }
+  };
+
+  // Handle sub-category1 change - load sub-categories2
+  const handleSubCategory1Change = (subCategoryName: string) => {
+    setSubCategory1Pembayaran(subCategoryName);
+    setSubCategory2Pembayaran('');
+
+    // Find the sub-category1 and its sub-categories2
+    const subCategory1 = subCategories1.find(s => s.nama_subkategori === subCategoryName);
+    if (subCategory1 && subCategory1.subcategories2) {
+      setSubCategories2(subCategory1.subcategories2);
+    } else {
+      setSubCategories2([]);
     }
   };
 
@@ -156,7 +204,25 @@ export default function TransactionsPage() {
       setCategoryPembayaran('');
     } else if (transaction.category_pembayaran) {
       setTransactionType('pembayaran');
+
+      // Pre-fill pembayaran category and sub-categories
+      const category = pembayaranCategories.find(c => c.nama_kategori === transaction.category_pembayaran);
       setCategoryPembayaran(transaction.category_pembayaran);
+
+      if (category && category.subcategories1) {
+        setSubCategories1(category.subcategories1);
+
+        if (transaction.sub_category1_pembayaran) {
+          setSubCategory1Pembayaran(transaction.sub_category1_pembayaran);
+
+          const subCat1 = category.subcategories1.find((s: any) => s.nama_subkategori === transaction.sub_category1_pembayaran);
+          if (subCat1 && subCat1.subcategories2) {
+            setSubCategories2(subCat1.subcategories2);
+            setSubCategory2Pembayaran(transaction.sub_category2_pembayaran || '');
+          }
+        }
+      }
+
       setCategoryPenerimaan('');
       setSelectedCategory(null);
       setSubCategoryPenerimaan('');
@@ -175,6 +241,10 @@ export default function TransactionsPage() {
       setInvestmentType('');
       setInvestmentInstitution('');
       setCategoryPembayaran('');
+      setSubCategory1Pembayaran('');
+      setSubCategory2Pembayaran('');
+      setSubCategories1([]);
+      setSubCategories2([]);
     }
 
     setNotes(transaction.notes || '');
@@ -199,6 +269,8 @@ export default function TransactionsPage() {
           investment_type: transactionType === 'penerimaan' && categoryPenerimaan === 'Hibah Pelaburan' ? (investmentType || null) : null,
           investment_institution: transactionType === 'penerimaan' && categoryPenerimaan === 'Hibah Pelaburan' ? (investmentInstitution || null) : null,
           category_pembayaran: transactionType === 'pembayaran' ? categoryPembayaran : null,
+          sub_category1_pembayaran: transactionType === 'pembayaran' ? (subCategory1Pembayaran || null) : null,
+          sub_category2_pembayaran: transactionType === 'pembayaran' ? (subCategory2Pembayaran || null) : null,
           notes: notes || null,
         }),
       });
@@ -228,6 +300,10 @@ export default function TransactionsPage() {
     setInvestmentType('');
     setInvestmentInstitution('');
     setCategoryPembayaran('');
+    setSubCategory1Pembayaran('');
+    setSubCategory2Pembayaran('');
+    setSubCategories1([]);
+    setSubCategories2([]);
     setNotes('');
   };
 
@@ -288,11 +364,38 @@ export default function TransactionsPage() {
   const pembayaranCount = allTransactions.filter(t => t.debit_amount && t.debit_amount > 0).length;
   const totalCount = allTransactions.length;
 
+  // Get unique categories from current filtered transactions for dropdown
+  const getAvailableCategories = () => {
+    const categories = new Set<string>();
+    transactions.forEach(t => {
+      if (t.category_penerimaan) categories.add(t.category_penerimaan);
+      if (t.category_pembayaran) categories.add(t.category_pembayaran);
+    });
+    return Array.from(categories).sort();
+  };
+  const availableCategories = getAvailableCategories();
+
+  // Apply category filter to transactions
+  const filteredByCategory = categoryFilter
+    ? transactions.filter(t => t.category_penerimaan === categoryFilter || t.category_pembayaran === categoryFilter)
+    : transactions;
+
+  // Sort transactions by date (after category filter)
+  const sortedTransactions = [...filteredByCategory].sort((a, b) => {
+    const dateA = new Date(a.transaction_date).getTime();
+    const dateB = new Date(b.transaction_date).getTime();
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+  });
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+  };
+
   // Pagination calculations
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentTransactions = transactions.slice(startIndex, endIndex);
+  const currentTransactions = sortedTransactions.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -334,31 +437,63 @@ export default function TransactionsPage() {
             <div className="btn-group" role="group">
               <button
                 className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
-                onClick={() => setFilter('all')}
+                onClick={() => { setFilter('all'); setCategoryFilter(''); }}
               >
                 Semua ({totalCount})
               </button>
               <button
                 className={`btn ${filter === 'uncategorized' ? 'btn-warning' : 'btn-outline-warning'}`}
-                onClick={() => setFilter('uncategorized')}
+                onClick={() => { setFilter('uncategorized'); setCategoryFilter(''); }}
               >
                 Belum Dikategorikan ({uncategorizedCount})
               </button>
               <button
                 className={`btn ${filter === 'penerimaan' ? 'btn-success' : 'btn-outline-success'}`}
-                onClick={() => setFilter('penerimaan')}
+                onClick={() => { setFilter('penerimaan'); setCategoryFilter(''); }}
               >
                 Penerimaan ({penerimaanCount})
               </button>
               <button
                 className={`btn ${filter === 'pembayaran' ? 'btn-danger' : 'btn-outline-danger'}`}
-                onClick={() => setFilter('pembayaran')}
+                onClick={() => { setFilter('pembayaran'); setCategoryFilter(''); }}
               >
                 Pembayaran ({pembayaranCount})
               </button>
             </div>
           </div>
           <div className="col-md-4 text-end">
+            <div className="dropdown d-inline-block me-2">
+              <button
+                className="btn btn-secondary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="Urus Kategori"
+              >
+                <i className="bi bi-folder me-1"></i>
+                Kategori
+              </button>
+              <ul className="dropdown-menu dropdown-menu-end">
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => router.push('/financial/categories')}
+                  >
+                    <i className="bi bi-cash-coin text-success me-2"></i>
+                    Kategori Penerimaan
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => router.push('/financial/pembayaran-categories')}
+                  >
+                    <i className="bi bi-cash-stack text-danger me-2"></i>
+                    Kategori Pembayaran
+                  </button>
+                </li>
+              </ul>
+            </div>
             <button
               className="btn btn-info me-2"
               onClick={() => router.push('/financial/keywords')}
@@ -395,7 +530,14 @@ export default function TransactionsPage() {
               <table className="table table-sm table-hover">
                 <thead className="table-light sticky-top">
                   <tr>
-                    <th style={{ width: '100px' }}>Tarikh</th>
+                    <th
+                      style={{ width: '100px', cursor: 'pointer' }}
+                      onClick={toggleSortOrder}
+                      title="Klik untuk tukar susunan"
+                    >
+                      Tarikh
+                      <i className={`bi bi-arrow-${sortOrder === 'desc' ? 'down' : 'up'} ms-1`}></i>
+                    </th>
                     <th style={{ width: '120px' }}>No. EFT</th>
                     <th>Penerangan</th>
                     <th style={{ width: '180px' }}>Nama Pengirim/Penerima</th>
@@ -403,7 +545,40 @@ export default function TransactionsPage() {
                     <th style={{ width: '120px' }} className="text-end">Debit (RM)</th>
                     <th style={{ width: '120px' }} className="text-end">Kredit (RM)</th>
                     <th style={{ width: '100px' }}>Jenis</th>
-                    <th style={{ width: '180px' }}>Kategori</th>
+                    <th style={{ width: '200px' }}>
+                      <div className="d-flex align-items-center gap-1">
+                        <span>Kategori</span>
+                        <select
+                          className="form-select form-select-sm"
+                          style={{ width: 'auto', fontSize: '11px', padding: '2px 24px 2px 6px' }}
+                          value={categoryFilter}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            setCategoryFilter(e.target.value);
+                            setCurrentPage(1);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <option value="">Semua</option>
+                          {availableCategories.map((cat) => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                        {categoryFilter && (
+                          <button
+                            className="btn btn-link btn-sm p-0 text-danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCategoryFilter('');
+                              setCurrentPage(1);
+                            }}
+                            title="Reset filter"
+                          >
+                            <i className="bi bi-x-circle"></i>
+                          </button>
+                        )}
+                      </div>
+                    </th>
                     <th style={{ width: '120px' }}>Tindakan</th>
                   </tr>
                 </thead>
@@ -484,7 +659,7 @@ export default function TransactionsPage() {
             {totalPages > 1 && (
               <div className="d-flex justify-content-between align-items-center mt-3 px-3">
                 <div className="text-muted">
-                  Menunjukkan {startIndex + 1} hingga {Math.min(endIndex, transactions.length)} daripada {transactions.length} transaksi
+                  Menunjukkan {startIndex + 1} hingga {Math.min(endIndex, sortedTransactions.length)} daripada {sortedTransactions.length} transaksi
                 </div>
                 <nav>
                   <ul className="pagination mb-0">
@@ -667,17 +842,24 @@ export default function TransactionsPage() {
                         </select>
                       )
                     ) : (
-                      <select
-                        className="form-select"
-                        value={categoryPembayaran}
-                        onChange={(e) => setCategoryPembayaran(e.target.value as PembayaranCategory)}
-                        required
-                      >
-                        <option value="">Pilih Kategori Pembayaran</option>
-                        {pembayaranCategories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
+                      loadingPembayaranCategories ? (
+                        <div className="text-center py-2">
+                          <span className="spinner-border spinner-border-sm me-2"></span>
+                          Memuat kategori...
+                        </div>
+                      ) : (
+                        <select
+                          className="form-select"
+                          value={categoryPembayaran}
+                          onChange={(e) => handlePembayaranCategoryChange(e.target.value)}
+                          required
+                        >
+                          <option value="">Pilih Kategori Pembayaran</option>
+                          {pembayaranCategories.map((cat) => (
+                            <option key={cat.id} value={cat.nama_kategori}>{cat.nama_kategori}</option>
+                          ))}
+                        </select>
+                      )
                     )}
                   </div>
 
@@ -693,6 +875,40 @@ export default function TransactionsPage() {
                         <option value="">Pilih Sub-Kategori (Opsional)</option>
                         {getSubCategoriesDynamic(selectedCategory).map((subCat) => (
                           <option key={subCat} value={subCat}>{subCat}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Sub-Kategori 1 Pembayaran */}
+                  {transactionType === 'pembayaran' && categoryPembayaran && subCategories1.length > 0 && (
+                    <div className="mb-3">
+                      <label className="form-label">Sub-Kategori 1</label>
+                      <select
+                        className="form-select"
+                        value={subCategory1Pembayaran}
+                        onChange={(e) => handleSubCategory1Change(e.target.value)}
+                      >
+                        <option value="">Pilih Sub-Kategori 1 (Opsional)</option>
+                        {subCategories1.map((sub) => (
+                          <option key={sub.id} value={sub.nama_subkategori}>{sub.nama_subkategori}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Sub-Kategori 2 Pembayaran */}
+                  {transactionType === 'pembayaran' && subCategory1Pembayaran && subCategories2.length > 0 && (
+                    <div className="mb-3">
+                      <label className="form-label">Sub-Kategori 2</label>
+                      <select
+                        className="form-select"
+                        value={subCategory2Pembayaran}
+                        onChange={(e) => setSubCategory2Pembayaran(e.target.value)}
+                      >
+                        <option value="">Pilih Sub-Kategori 2 (Opsional)</option>
+                        {subCategories2.map((sub) => (
+                          <option key={sub.id} value={sub.nama_subkategori}>{sub.nama_subkategori}</option>
                         ))}
                       </select>
                     </div>
