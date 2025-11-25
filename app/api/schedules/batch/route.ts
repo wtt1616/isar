@@ -29,9 +29,16 @@ export async function PUT(request: NextRequest) {
 
     // Validate all updates before processing
     for (const update of updates) {
-      if (!update.id || !update.imam_id || !update.bilal_id) {
+      if (!update.id) {
         return NextResponse.json(
-          { error: 'Invalid update: id, imam_id, and bilal_id required' },
+          { error: 'Invalid update: id is required' },
+          { status: 400 }
+        );
+      }
+      // imam_id and bilal_id can be null (for vacant slots) but must be defined
+      if (update.imam_id === undefined || update.bilal_id === undefined) {
+        return NextResponse.json(
+          { error: 'Invalid update: imam_id and bilal_id must be specified (can be null for vacant)' },
           { status: 400 }
         );
       }

@@ -16,7 +16,7 @@ export default function ManageSchedulePage() {
   const [loading, setLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
   const [editMode, setEditMode] = useState<{ [key: string]: boolean }>({});
-  const [editValues, setEditValues] = useState<{ [key: string]: { imam_id: number; bilal_id: number } }>({});
+  const [editValues, setEditValues] = useState<{ [key: string]: { imam_id: number | null; bilal_id: number | null } }>({});
   const [alert, setAlert] = useState<{ type: string; message: string } | null>(null);
   const [unavailability, setUnavailability] = useState<Map<string, Set<number>>>(new Map());
   const [sendingReminders, setSendingReminders] = useState(false);
@@ -219,8 +219,8 @@ export default function ManageSchedulePage() {
     // Build updates array
     const updates = editedScheduleIds.map(id => ({
       id: parseInt(id),
-      imam_id: editValues[id].imam_id,
-      bilal_id: editValues[id].bilal_id,
+      imam_id: editValues[id]?.imam_id || null,
+      bilal_id: editValues[id]?.bilal_id || null,
     }));
 
     try {
@@ -615,7 +615,7 @@ export default function ManageSchedulePage() {
                                           ...editValues,
                                           [schedule.id]: {
                                             ...editValues[schedule.id],
-                                            imam_id: parseInt(e.target.value),
+                                            imam_id: e.target.value ? parseInt(e.target.value) : null,
                                           },
                                         })
                                       }
@@ -635,7 +635,7 @@ export default function ManageSchedulePage() {
                                           ...editValues,
                                           [schedule.id]: {
                                             ...editValues[schedule.id],
-                                            bilal_id: parseInt(e.target.value),
+                                            bilal_id: e.target.value ? parseInt(e.target.value) : null,
                                           },
                                         })
                                       }
