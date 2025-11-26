@@ -20,6 +20,7 @@ export default function ManageSchedulePage() {
   const [alert, setAlert] = useState<{ type: string; message: string } | null>(null);
   const [unavailability, setUnavailability] = useState<Map<string, Set<number>>>(new Map());
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [showWhatsAppHelp, setShowWhatsAppHelp] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -458,6 +459,13 @@ export default function ManageSchedulePage() {
                     </>
                   )}
                 </button>
+                <button
+                  className="btn btn-outline-secondary d-flex align-items-center"
+                  onClick={() => setShowWhatsAppHelp(true)}
+                  title="WhatsApp Setup Help"
+                >
+                  <i className="bi bi-question-circle"></i>
+                </button>
                 <button className="btn btn-danger d-flex align-items-center" onClick={deleteWeekSchedules}>
                   <i className="bi bi-trash me-2"></i>Delete
                 </button>
@@ -793,6 +801,129 @@ export default function ManageSchedulePage() {
           </>
         )}
       </div>
+
+      {/* WhatsApp Help Modal */}
+      {showWhatsAppHelp && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title">
+                  <i className="bi bi-whatsapp me-2"></i>
+                  WhatsApp Reminder Setup
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowWhatsAppHelp(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="alert alert-warning">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Important:</strong> Currently using WhatsApp Sandbox mode. Recipients must opt-in first to receive messages.
+                </div>
+
+                <h6 className="mt-4 mb-3">
+                  <i className="bi bi-1-circle me-2"></i>
+                  Steps for Imam & Bilal to Receive Reminders:
+                </h6>
+
+                <div className="card mb-3">
+                  <div className="card-body">
+                    <ol className="mb-0">
+                      <li className="mb-2">
+                        Save this WhatsApp number in your phone:<br/>
+                        <strong className="text-success fs-5">+1 415 523 8886</strong>
+                        <button
+                          className="btn btn-sm btn-outline-secondary ms-2"
+                          onClick={() => navigator.clipboard.writeText('+14155238886')}
+                        >
+                          <i className="bi bi-clipboard"></i> Copy
+                        </button>
+                      </li>
+                      <li className="mb-2">
+                        Open WhatsApp and send this message to the number above:<br/>
+                        <code className="bg-light p-2 d-inline-block mt-1 rounded">join &lt;sandbox-keyword&gt;</code>
+                        <br/>
+                        <small className="text-muted">
+                          * Get your sandbox keyword from: <a href="https://console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn" target="_blank" rel="noopener noreferrer">Twilio Console → WhatsApp → Sandbox</a>
+                        </small>
+                      </li>
+                      <li className="mb-2">
+                        Wait for the confirmation message from WhatsApp
+                      </li>
+                      <li>
+                        Done! You will now receive prayer duty reminders
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+
+                <h6 className="mt-4 mb-3">
+                  <i className="bi bi-2-circle me-2"></i>
+                  Quick Share (Copy & Send to Imam/Bilal):
+                </h6>
+
+                <div className="card bg-light">
+                  <div className="card-body">
+                    <p className="mb-2" style={{ whiteSpace: 'pre-line' }}>
+                      {`Assalamualaikum,
+
+Untuk menerima peringatan tugas solat melalui WhatsApp, sila ikut langkah berikut:
+
+1. Save nombor ini: +1 415 523 8886
+2. Hantar mesej "join <KEYWORD>" ke nombor tersebut
+   (Keyword akan diberikan oleh Head Imam)
+3. Tunggu mesej pengesahan
+
+Terima kasih.
+- iSAR System`}
+                    </p>
+                    <small className="text-muted d-block mb-2">
+                      * Replace &lt;KEYWORD&gt; with your actual Twilio sandbox keyword before sending
+                    </small>
+                    <button
+                      className="btn btn-success"
+                      onClick={() => {
+                        const text = `Assalamualaikum,
+
+Untuk menerima peringatan tugas solat melalui WhatsApp, sila ikut langkah berikut:
+
+1. Save nombor ini: +1 415 523 8886
+2. Hantar mesej "join <KEYWORD>" ke nombor tersebut
+3. Tunggu mesej pengesahan
+
+Terima kasih.
+- iSAR System`;
+                        navigator.clipboard.writeText(text);
+                        alert('Message copied! Replace <KEYWORD> with your Twilio sandbox keyword before sending.');
+                      }}
+                    >
+                      <i className="bi bi-clipboard me-2"></i>
+                      Copy Message (Malay)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="alert alert-info mt-4">
+                  <i className="bi bi-info-circle me-2"></i>
+                  <strong>Note:</strong> Once WhatsApp Business API is approved, recipients will receive messages automatically without needing to opt-in.
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowWhatsAppHelp(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
