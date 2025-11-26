@@ -682,21 +682,23 @@ export default function ManageSchedulePage() {
                                       className="mb-2 p-2 rounded"
                                       style={{
                                         backgroundColor: schedule.imam_id ? getUserColor(schedule.imam_id).bg : '#f8f9fa',
-                                        color: schedule.imam_id ? getUserColor(schedule.imam_id).text : '#6c757d',
                                         border: `2px solid ${schedule.imam_id ? getUserColor(schedule.imam_id).border : '#dee2e6'}`,
                                       }}
                                     >
-                                      <strong>Imam:</strong> {schedule.imam_name || <span className="text-danger">VACANT</span>}
+                                      <span style={{ color: schedule.imam_id ? '#000000' : '#6c757d', fontWeight: 'bold' }}>
+                                        Imam: {schedule.imam_name || <span className="text-danger">VACANT</span>}
+                                      </span>
                                     </div>
                                     <div
                                       className="mb-2 p-2 rounded"
                                       style={{
                                         backgroundColor: schedule.bilal_id ? getUserColor(schedule.bilal_id).bg : '#f8f9fa',
-                                        color: schedule.bilal_id ? getUserColor(schedule.bilal_id).text : '#6c757d',
                                         border: `2px solid ${schedule.bilal_id ? getUserColor(schedule.bilal_id).border : '#dee2e6'}`,
                                       }}
                                     >
-                                      <strong>Bilal:</strong> {schedule.bilal_name || <span className="text-danger">VACANT</span>}
+                                      <span style={{ color: schedule.bilal_id ? '#000000' : '#6c757d', fontWeight: 'bold' }}>
+                                        Bilal: {schedule.bilal_name || <span className="text-danger">VACANT</span>}
+                                      </span>
                                     </div>
                                     <button
                                       className="btn btn-sm btn-primary mt-2"

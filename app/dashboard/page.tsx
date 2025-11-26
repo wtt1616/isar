@@ -440,21 +440,19 @@ export default function DashboardPage() {
                                     className="mb-2 p-2 rounded"
                                     style={{
                                       backgroundColor: getUserColor(schedule.imam_id).bg,
-                                      color: getUserColor(schedule.imam_id).text,
                                       border: `2px solid ${getUserColor(schedule.imam_id).border}`,
                                     }}
                                   >
-                                    <strong>Imam:</strong> {schedule.imam_name}
+                                    <span style={{ color: '#000000', fontWeight: 'bold' }}>Imam: {schedule.imam_name}</span>
                                   </div>
                                   <div
                                     className="mb-2 p-2 rounded"
                                     style={{
                                       backgroundColor: getUserColor(schedule.bilal_id).bg,
-                                      color: getUserColor(schedule.bilal_id).text,
                                       border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
                                     }}
                                   >
-                                    <strong>Bilal:</strong> {schedule.bilal_name}
+                                    <span style={{ color: '#000000', fontWeight: 'bold' }}>Bilal: {schedule.bilal_name}</span>
                                   </div>
                                 </div>
                               ) : (
