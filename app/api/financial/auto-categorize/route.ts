@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
           });
         }
       } else {
-        // Business Rule: If no keyword match AND special conditions met
+        // Business Rule 1: If no keyword match AND special conditions met
         // Categorize as "Sumbangan Am" if:
         // 1. customer_eft_no is NULL
         // 2. payment_details is NOT NULL
@@ -156,6 +156,34 @@ export async function POST(request: NextRequest) {
               search_text: searchText
             });
           }
+        }
+
+        // Business Rule 2: Sumbangan Am for Fund Transfer/Transfer with no payment_details
+        // Categorize as "Sumbangan Am" if:
+        // 1. customer_eft_no contains: "Fund Transfer", "Transfer", "Surau Ar-Raudhah", or "SAR"
+        // 2. payment_details is NULL or empty
+        // 3. Transaction is penerimaan (has credit_amount)
+        const customerEftNo = (transaction.customer_eft_no || '').toLowerCase();
+        const hasTransferKeyword =
+          customerEftNo.includes('fund transfer') ||
+          customerEftNo.includes('transfer') ||
+          customerEftNo.includes('surau ar-raudhah') ||
+          customerEftNo.includes('sar');
+        const paymentDetailsEmpty = !transaction.payment_details || transaction.payment_details.trim() === '';
+
+        if (
+          isPenerimaan &&
+          !transaction.category_penerimaan &&
+          hasTransferKeyword &&
+          paymentDetailsEmpty
+        ) {
+          updates.push({
+            id: transaction.id,
+            category_penerimaan: 'Sumbangan Am',
+            category_pembayaran: null,
+            matched_keyword: 'RULE: Sumbangan Am (Transfer tanpa payment_details)',
+            search_text: searchText
+          });
         }
       }
     }
