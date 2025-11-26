@@ -1,30 +1,30 @@
-// Bright pastel color palette - clear backgrounds with black bold text
-// All colors use black text for readability
+// Distinct bright color palette - each color is unique and clearly different
+// All colors use black text for readability (white for dark backgrounds)
 const COLOR_PALETTE = [
-  { bg: '#FFB3B3', text: '#000000', border: '#FF8080' }, // Light Red/Pink
-  { bg: '#FFD9B3', text: '#000000', border: '#FFBF80' }, // Light Orange
-  { bg: '#FFFFB3', text: '#000000', border: '#FFFF80' }, // Light Yellow
-  { bg: '#B3FFB3', text: '#000000', border: '#80FF80' }, // Light Green
-  { bg: '#B3FFFF', text: '#000000', border: '#80FFFF' }, // Light Cyan
-  { bg: '#B3D9FF', text: '#000000', border: '#80BFFF' }, // Light Blue
-  { bg: '#D9B3FF', text: '#000000', border: '#BF80FF' }, // Light Purple
-  { bg: '#FFB3E6', text: '#000000', border: '#FF80D4' }, // Light Magenta
-  { bg: '#FFCCCC', text: '#000000', border: '#FF9999' }, // Soft Red
-  { bg: '#FFE5CC', text: '#000000', border: '#FFCC99' }, // Soft Orange
-  { bg: '#E6FFB3', text: '#000000', border: '#D4FF80' }, // Lime Green
-  { bg: '#B3FFE6', text: '#000000', border: '#80FFD4' }, // Mint Green
-  { bg: '#CCE5FF', text: '#000000', border: '#99CCFF' }, // Sky Blue
-  { bg: '#E6CCFF', text: '#000000', border: '#D699FF' }, // Lavender
-  { bg: '#FFCCE5', text: '#000000', border: '#FF99CC' }, // Rose Pink
-  { bg: '#FFE6B3', text: '#000000', border: '#FFD480' }, // Peach
-  { bg: '#C2F0C2', text: '#000000', border: '#99E699' }, // Pale Green
-  { bg: '#C2E0F0', text: '#000000', border: '#99CCE6' }, // Pale Blue
-  { bg: '#F0C2E0', text: '#000000', border: '#E699CC' }, // Pale Pink
-  { bg: '#F0E6C2', text: '#000000', border: '#E6D499' }, // Pale Yellow
-  { bg: '#C2F0F0', text: '#000000', border: '#99E6E6' }, // Pale Cyan
-  { bg: '#E0C2F0', text: '#000000', border: '#CC99E6' }, // Pale Violet
-  { bg: '#F0D9C2', text: '#000000', border: '#E6C299' }, // Pale Tan
-  { bg: '#D9F0C2', text: '#000000', border: '#C2E699' }, // Pale Lime
+  { bg: '#FF6B6B', text: '#000000', border: '#E63946' }, // Coral Red
+  { bg: '#FF9F1C', text: '#000000', border: '#E88504' }, // Orange
+  { bg: '#FFEB3B', text: '#000000', border: '#FDD835' }, // Yellow
+  { bg: '#4CAF50', text: '#000000', border: '#388E3C' }, // Green
+  { bg: '#00BCD4', text: '#000000', border: '#0097A7' }, // Cyan
+  { bg: '#2196F3', text: '#000000', border: '#1976D2' }, // Blue
+  { bg: '#9C27B0', text: '#FFFFFF', border: '#7B1FA2' }, // Purple
+  { bg: '#E91E63', text: '#000000', border: '#C2185B' }, // Pink
+  { bg: '#795548', text: '#FFFFFF', border: '#5D4037' }, // Brown
+  { bg: '#607D8B', text: '#FFFFFF', border: '#455A64' }, // Blue Grey
+  { bg: '#8BC34A', text: '#000000', border: '#689F38' }, // Light Green
+  { bg: '#03A9F4', text: '#000000', border: '#0288D1' }, // Light Blue
+  { bg: '#CDDC39', text: '#000000', border: '#AFB42B' }, // Lime
+  { bg: '#FF5722', text: '#000000', border: '#E64A19' }, // Deep Orange
+  { bg: '#673AB7', text: '#FFFFFF', border: '#512DA8' }, // Deep Purple
+  { bg: '#009688', text: '#FFFFFF', border: '#00796B' }, // Teal
+  { bg: '#FFC107', text: '#000000', border: '#FFA000' }, // Amber
+  { bg: '#3F51B5', text: '#FFFFFF', border: '#303F9F' }, // Indigo
+  { bg: '#00ACC1', text: '#000000', border: '#00838F' }, // Dark Cyan (replaced Material Red)
+  { bg: '#00E676', text: '#000000', border: '#00C853' }, // Bright Green
+  { bg: '#FF4081', text: '#000000', border: '#F50057' }, // Pink Accent
+  { bg: '#40C4FF', text: '#000000', border: '#00B0FF' }, // Light Blue Accent
+  { bg: '#FFAB40', text: '#000000', border: '#FF9100' }, // Orange Accent
+  { bg: '#69F0AE', text: '#000000', border: '#00E676' }, // Green Accent
 ];
 
 // Store user color assignments and track which colors are used

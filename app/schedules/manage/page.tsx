@@ -609,6 +609,10 @@ export default function ManageSchedulePage() {
                           const isEditing = schedule && editMode[schedule.id];
                           const availableImams = getAvailableUsers(date, prayer, 'imam');
                           const availableBilals = getAvailableUsers(date, prayer, 'bilal');
+                          // Special styling for Jumaat (Friday Zohor prayer) - black background, white text
+                          const dayOfWeek = new Date(date).getDay(); // 5 = Friday
+                          const isJumaat = dayOfWeek === 5 && prayer === 'Zohor';
+                          const jumaatStyle = { bg: '#000000', text: '#FFFFFF', border: '#333333' };
 
                           return (
                             <td key={`${date}-${prayer}`}>
@@ -681,23 +685,23 @@ export default function ManageSchedulePage() {
                                     <div
                                       className="mb-2 p-2 rounded"
                                       style={{
-                                        backgroundColor: schedule.imam_id ? getUserColor(schedule.imam_id).bg : '#f8f9fa',
-                                        border: `2px solid ${schedule.imam_id ? getUserColor(schedule.imam_id).border : '#dee2e6'}`,
+                                        backgroundColor: isJumaat ? jumaatStyle.bg : (schedule.imam_id ? getUserColor(schedule.imam_id).bg : '#f8f9fa'),
+                                        border: `2px solid ${isJumaat ? jumaatStyle.border : (schedule.imam_id ? getUserColor(schedule.imam_id).border : '#dee2e6')}`,
                                       }}
                                     >
-                                      <span style={{ color: schedule.imam_id ? '#000000' : '#6c757d', fontWeight: 'bold' }}>
-                                        Imam: {schedule.imam_name || <span className="text-danger">VACANT</span>}
+                                      <span style={{ color: isJumaat ? jumaatStyle.text : (schedule.imam_id ? getUserColor(schedule.imam_id).text : '#6c757d'), fontWeight: 'bold' }}>
+                                        Imam: {schedule.imam_name || <span style={{ color: isJumaat ? '#ff6b6b' : '#dc3545' }}>VACANT</span>}
                                       </span>
                                     </div>
                                     <div
                                       className="mb-2 p-2 rounded"
                                       style={{
-                                        backgroundColor: schedule.bilal_id ? getUserColor(schedule.bilal_id).bg : '#f8f9fa',
-                                        border: `2px solid ${schedule.bilal_id ? getUserColor(schedule.bilal_id).border : '#dee2e6'}`,
+                                        backgroundColor: isJumaat ? jumaatStyle.bg : (schedule.bilal_id ? getUserColor(schedule.bilal_id).bg : '#f8f9fa'),
+                                        border: `2px solid ${isJumaat ? jumaatStyle.border : (schedule.bilal_id ? getUserColor(schedule.bilal_id).border : '#dee2e6')}`,
                                       }}
                                     >
-                                      <span style={{ color: schedule.bilal_id ? '#000000' : '#6c757d', fontWeight: 'bold' }}>
-                                        Bilal: {schedule.bilal_name || <span className="text-danger">VACANT</span>}
+                                      <span style={{ color: isJumaat ? jumaatStyle.text : (schedule.bilal_id ? getUserColor(schedule.bilal_id).text : '#6c757d'), fontWeight: 'bold' }}>
+                                        Bilal: {schedule.bilal_name || <span style={{ color: isJumaat ? '#ff6b6b' : '#dc3545' }}>VACANT</span>}
                                       </span>
                                     </div>
                                     <button

@@ -432,6 +432,11 @@ export default function DashboardPage() {
                         <td className="prayer-time-cell">{prayer}</td>
                         {days.map((date) => {
                           const schedule = getScheduleForSlot(date, prayer);
+                          // Special styling for Jumaat (Friday Zohor prayer) - black background, white text
+                          const dayOfWeek = new Date(date).getDay(); // 5 = Friday
+                          const isJumaat = dayOfWeek === 5 && prayer === 'Zohor';
+                          const jumaatStyle = { bg: '#000000', text: '#FFFFFF', border: '#333333' };
+
                           return (
                             <td key={`${date}-${prayer}`}>
                               {schedule ? (
@@ -439,20 +444,20 @@ export default function DashboardPage() {
                                   <div
                                     className="mb-2 p-2 rounded"
                                     style={{
-                                      backgroundColor: getUserColor(schedule.imam_id).bg,
-                                      border: `2px solid ${getUserColor(schedule.imam_id).border}`,
+                                      backgroundColor: isJumaat ? jumaatStyle.bg : getUserColor(schedule.imam_id).bg,
+                                      border: `2px solid ${isJumaat ? jumaatStyle.border : getUserColor(schedule.imam_id).border}`,
                                     }}
                                   >
-                                    <span style={{ color: '#000000', fontWeight: 'bold' }}>Imam: {schedule.imam_name}</span>
+                                    <span style={{ color: isJumaat ? jumaatStyle.text : getUserColor(schedule.imam_id).text, fontWeight: 'bold' }}>Imam: {schedule.imam_name}</span>
                                   </div>
                                   <div
                                     className="mb-2 p-2 rounded"
                                     style={{
-                                      backgroundColor: getUserColor(schedule.bilal_id).bg,
-                                      border: `2px solid ${getUserColor(schedule.bilal_id).border}`,
+                                      backgroundColor: isJumaat ? jumaatStyle.bg : getUserColor(schedule.bilal_id).bg,
+                                      border: `2px solid ${isJumaat ? jumaatStyle.border : getUserColor(schedule.bilal_id).border}`,
                                     }}
                                   >
-                                    <span style={{ color: '#000000', fontWeight: 'bold' }}>Bilal: {schedule.bilal_name}</span>
+                                    <span style={{ color: isJumaat ? jumaatStyle.text : getUserColor(schedule.bilal_id).text, fontWeight: 'bold' }}>Bilal: {schedule.bilal_name}</span>
                                   </div>
                                 </div>
                               ) : (
