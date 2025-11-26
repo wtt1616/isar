@@ -897,7 +897,7 @@ Untuk menerima peringatan tugas solat melalui WhatsApp, sila ikut langkah beriku
 Terima kasih.
 - iSAR System`;
                         navigator.clipboard.writeText(text);
-                        alert('Message copied! Replace <KEYWORD> with your Twilio sandbox keyword before sending.');
+                        window.alert('Message copied! Replace <KEYWORD> with your Twilio sandbox keyword before sending.');
                       }}
                     >
                       <i className="bi bi-clipboard me-2"></i>
