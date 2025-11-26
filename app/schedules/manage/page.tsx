@@ -844,11 +844,13 @@ export default function ManageSchedulePage() {
                       </li>
                       <li className="mb-2">
                         Open WhatsApp and send this message to the number above:<br/>
-                        <code className="bg-light p-2 d-inline-block mt-1 rounded">join &lt;sandbox-keyword&gt;</code>
-                        <br/>
-                        <small className="text-muted">
-                          * Get your sandbox keyword from: <a href="https://console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn" target="_blank" rel="noopener noreferrer">Twilio Console → WhatsApp → Sandbox</a>
-                        </small>
+                        <code className="bg-light p-2 d-inline-block mt-1 rounded">join worried-distant</code>
+                        <button
+                          className="btn btn-sm btn-outline-secondary ms-2"
+                          onClick={() => navigator.clipboard.writeText('join worried-distant')}
+                        >
+                          <i className="bi bi-clipboard"></i> Copy
+                        </button>
                       </li>
                       <li className="mb-2">
                         Wait for the confirmation message from WhatsApp
@@ -873,16 +875,12 @@ export default function ManageSchedulePage() {
 Untuk menerima peringatan tugas solat melalui WhatsApp, sila ikut langkah berikut:
 
 1. Save nombor ini: +1 415 523 8886
-2. Hantar mesej "join <KEYWORD>" ke nombor tersebut
-   (Keyword akan diberikan oleh Head Imam)
+2. Hantar mesej "join worried-distant" ke nombor tersebut
 3. Tunggu mesej pengesahan
 
 Terima kasih.
 - iSAR System`}
                     </p>
-                    <small className="text-muted d-block mb-2">
-                      * Replace &lt;KEYWORD&gt; with your actual Twilio sandbox keyword before sending
-                    </small>
                     <button
                       className="btn btn-success"
                       onClick={() => {
@@ -891,13 +889,13 @@ Terima kasih.
 Untuk menerima peringatan tugas solat melalui WhatsApp, sila ikut langkah berikut:
 
 1. Save nombor ini: +1 415 523 8886
-2. Hantar mesej "join <KEYWORD>" ke nombor tersebut
+2. Hantar mesej "join worried-distant" ke nombor tersebut
 3. Tunggu mesej pengesahan
 
 Terima kasih.
 - iSAR System`;
                         navigator.clipboard.writeText(text);
-                        window.alert('Message copied! Replace <KEYWORD> with your Twilio sandbox keyword before sending.');
+                        window.alert('Message copied! You can now paste and send to Imam/Bilal.');
                       }}
                     >
                       <i className="bi bi-clipboard me-2"></i>
