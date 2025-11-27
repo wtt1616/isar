@@ -10,7 +10,8 @@
       "Bash(npm run build:*)",
       "Bash(find:*)",
       "Bash(mysqldump:*)",
-      "Bash(isar_db_production.sql)"
+      "Bash(isar_db_production.sql)",
+      "Bash(mysql:*)"
     ],
     "deny": [],
     "ask": []

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "monitor:db": "ts-node scripts/monitor-db-connections.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

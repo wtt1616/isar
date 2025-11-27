@@ -89,6 +89,8 @@ export async function PUT(request: NextRequest) {
       investment_type,
       investment_institution,
       category_pembayaran,
+      sub_category1_pembayaran,
+      sub_category2_pembayaran,
       notes,
     } = body;
 
@@ -123,6 +125,8 @@ export async function PUT(request: NextRequest) {
            investment_type = ?,
            investment_institution = ?,
            category_pembayaran = ?,
+           sub_category1_pembayaran = ?,
+           sub_category2_pembayaran = ?,
            notes = ?,
            categorized_by = ?,
            categorized_at = NOW()
@@ -134,6 +138,8 @@ export async function PUT(request: NextRequest) {
         transaction_type === 'penerimaan' && category_penerimaan === 'Hibah Pelaburan' ? (investment_type || null) : null,
         transaction_type === 'penerimaan' && category_penerimaan === 'Hibah Pelaburan' ? (investment_institution || null) : null,
         transaction_type === 'pembayaran' ? category_pembayaran : null,
+        transaction_type === 'pembayaran' ? (sub_category1_pembayaran || null) : null,
+        transaction_type === 'pembayaran' ? (sub_category2_pembayaran || null) : null,
         notes || null,
         session.user.id,
         transaction_id,

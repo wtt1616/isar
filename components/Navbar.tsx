@@ -111,14 +111,93 @@ export default function Navbar() {
 
             {(userRole === 'admin' || userRole === 'bendahari' || userRole === 'head_imam') && (
               <>
-                <li className="nav-item">
-                  <Link
-                    className={`nav-link ${pathname.startsWith('/financial') && !pathname.startsWith('/dashboard/reports') ? 'active' : ''}`}
-                    href="/financial"
+                <li className="nav-item dropdown">
+                  <a
+                    className={`nav-link dropdown-toggle ${pathname.startsWith('/financial') && !pathname.startsWith('/dashboard/reports') ? 'active' : ''}`}
+                    href="#"
+                    id="financialDropdown"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
                   >
                     <i className="bi bi-cash-coin me-1"></i>
                     Kewangan
-                  </Link>
+                  </a>
+                  <ul className="dropdown-menu" aria-labelledby="financialDropdown">
+                    <li>
+                      <Link className="dropdown-item" href="/financial">
+                        <i className="bi bi-bank me-2"></i>
+                        Penyata Bank
+                      </Link>
+                    </li>
+                    {(userRole === 'admin' || userRole === 'bendahari') && (
+                      <>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/categories">
+                            <i className="bi bi-folder-fill me-2"></i>
+                            Selenggara Kategori
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/keywords">
+                            <i className="bi bi-key me-2"></i>
+                            Selenggara Keyword
+                          </Link>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-butiran-baki">
+                            <i className="bi bi-journal-bookmark me-2"></i>
+                            Nota Butiran Baki 1 Jan
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-butiran-baki-31dis">
+                            <i className="bi bi-journal-bookmark-fill me-2"></i>
+                            Nota Butiran Baki 31 Dis
+                          </Link>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-sumbangan-am">
+                            <i className="bi bi-cash-stack me-2"></i>
+                            Nota Penerimaan Sumbangan Am
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-sumbangan-khas">
+                            <i className="bi bi-gift me-2"></i>
+                            Nota Penerimaan Sumbangan Khas
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-elaun">
+                            <i className="bi bi-person-badge me-2"></i>
+                            Nota Penerimaan Elaun
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-pelaburan">
+                            <i className="bi bi-piggy-bank me-2"></i>
+                            Nota Penerimaan Pelaburan
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-deposit">
+                            <i className="bi bi-safe me-2"></i>
+                            Nota Penerimaan Deposit
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-lain">
+                            <i className="bi bi-three-dots me-2"></i>
+                            Nota Penerimaan Lain-lain
+                          </Link>
+                        </li>
+                      </>
+                    )}
+                  </ul>
                 </li>
                 <li className="nav-item dropdown">
                   <a
@@ -143,6 +222,61 @@ export default function Navbar() {
                       <Link className="dropdown-item" href="/dashboard/reports/buku-tunai">
                         <i className="bi bi-journal-text me-2"></i>
                         BR-KMS-002: Buku Tunai
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/laporan-bulanan">
+                        <i className="bi bi-calendar3 me-2"></i>
+                        BR-KMS-018: Laporan Bulanan
+                      </Link>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-butiran-baki">
+                        <i className="bi bi-journal-bookmark me-2"></i>
+                        Nota Butiran Baki 1 Jan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-butiran-baki-31dis">
+                        <i className="bi bi-journal-bookmark-fill me-2"></i>
+                        Nota Butiran Baki 31 Dis
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-sumbangan-am">
+                        <i className="bi bi-cash-stack me-2"></i>
+                        Nota Penerimaan Sumbangan Am
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-sumbangan-khas">
+                        <i className="bi bi-gift me-2"></i>
+                        Nota Penerimaan Sumbangan Khas
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-elaun">
+                        <i className="bi bi-person-badge me-2"></i>
+                        Nota Penerimaan Elaun
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-pelaburan">
+                        <i className="bi bi-piggy-bank me-2"></i>
+                        Nota Penerimaan Pelaburan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-deposit">
+                        <i className="bi bi-safe me-2"></i>
+                        Nota Penerimaan Deposit
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-lain">
+                        <i className="bi bi-three-dots me-2"></i>
+                        Nota Penerimaan Lain-lain
                       </Link>
                     </li>
                   </ul>
