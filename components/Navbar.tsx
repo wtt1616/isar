@@ -400,6 +400,18 @@ export default function Navbar() {
             )}
 
             {userRole === 'admin' && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${pathname === '/dashboard/aktiviti' ? 'active' : ''}`}
+                  href="/dashboard/aktiviti"
+                >
+                  <i className="bi bi-calendar-event me-1"></i>
+                  Aktiviti Surau
+                </Link>
+              </li>
+            )}
+
+            {userRole === 'admin' && (
               <>
                 <li className="nav-item">
                   <Link

@@ -213,7 +213,19 @@ export default function LoginPage() {
               <div style={{ fontSize: '0.875rem', fontWeight: '400', color: '#4b5563' }}>Public Schedule View</div>
             </div>
           </span>
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-2 flex-wrap">
+            <a
+              href="/kalendar-aktiviti"
+              className="btn btn-outline-primary d-flex align-items-center"
+              style={{
+                padding: '0.625rem 1.5rem',
+                borderRadius: '0.5rem',
+                fontWeight: '600'
+              }}
+            >
+              <i className="bi bi-calendar-event me-2"></i>
+              Kalendar Aktiviti
+            </a>
             <a
               href="/permohonan-majlis"
               className="btn btn-outline-success d-flex align-items-center"
