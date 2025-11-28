@@ -195,6 +195,49 @@ export default function Navbar() {
                             Nota Penerimaan Lain-lain
                           </Link>
                         </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-penerimaan-hasil-sewaan">
+                            <i className="bi bi-building-fill me-2"></i>
+                            Nota Penerimaan Hasil Sewaan
+                          </Link>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-pembayaran-pentadbiran">
+                            <i className="bi bi-building me-2"></i>
+                            Nota Pembayaran Pentadbiran
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-pembayaran-sumber-manusia">
+                            <i className="bi bi-people me-2"></i>
+                            Nota Pembayaran Sumber Manusia
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-pembayaran-pembangunan">
+                            <i className="bi bi-hammer me-2"></i>
+                            Nota Pembayaran Pembangunan
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-pembayaran-dakwah">
+                            <i className="bi bi-broadcast me-2"></i>
+                            Nota Pembayaran Dakwah
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-pembayaran-khidmat-sosial">
+                            <i className="bi bi-heart me-2"></i>
+                            Nota Pembayaran Khidmat Sosial
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item" href="/financial/nota-pembayaran-aset">
+                            <i className="bi bi-box-seam me-2"></i>
+                            Nota Pembayaran Aset
+                          </Link>
+                        </li>
                       </>
                     )}
                   </ul>
@@ -228,6 +271,12 @@ export default function Navbar() {
                       <Link className="dropdown-item" href="/dashboard/reports/laporan-bulanan">
                         <i className="bi bi-calendar3 me-2"></i>
                         BR-KMS-018: Laporan Bulanan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/penyata-kewangan-tahunan">
+                        <i className="bi bi-file-earmark-spreadsheet me-2"></i>
+                        BR-KMS-019: Penyata Kewangan Tahunan
                       </Link>
                     </li>
                     <li><hr className="dropdown-divider" /></li>
@@ -277,6 +326,49 @@ export default function Navbar() {
                       <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-lain">
                         <i className="bi bi-three-dots me-2"></i>
                         Nota Penerimaan Lain-lain
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-hasil-sewaan">
+                        <i className="bi bi-building-fill me-2"></i>
+                        Nota Penerimaan Hasil Sewaan
+                      </Link>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-pentadbiran">
+                        <i className="bi bi-building me-2"></i>
+                        Nota Pembayaran Pentadbiran
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-sumber-manusia">
+                        <i className="bi bi-people me-2"></i>
+                        Nota Pembayaran Sumber Manusia
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-pembangunan">
+                        <i className="bi bi-hammer me-2"></i>
+                        Nota Pembayaran Pembangunan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-dakwah">
+                        <i className="bi bi-broadcast me-2"></i>
+                        Nota Pembayaran Dakwah
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-khidmat-sosial">
+                        <i className="bi bi-heart me-2"></i>
+                        Nota Pembayaran Khidmat Sosial
+                      </Link>
+                    </li>
+                    <li>
+                      <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-aset">
+                        <i className="bi bi-box-seam me-2"></i>
+                        Nota Pembayaran Aset
                       </Link>
                     </li>
                   </ul>
