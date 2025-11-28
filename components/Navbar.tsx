@@ -387,6 +387,18 @@ export default function Navbar() {
               </li>
             )}
 
+            {(userRole === 'admin' || userRole === 'head_imam') && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${pathname === '/dashboard/permohonan-majlis' ? 'active' : ''}`}
+                  href="/dashboard/permohonan-majlis"
+                >
+                  <i className="bi bi-calendar-check me-1"></i>
+                  Permohonan Majlis
+                </Link>
+              </li>
+            )}
+
             {userRole === 'admin' && (
               <>
                 <li className="nav-item">
