@@ -30,24 +30,24 @@ async function getNotaTotal(tableName: string, tahun: number): Promise<NotaTotal
   }
 }
 
-// Helper function to get total from nota-butiran-baki tables (1, 2, 3)
+// Helper function to get total from nota-baki tables (1, 2, 3) - Baki 1 Jan
 async function getNotaButiranBakiTotal(tableNumber: number, tahun: number): Promise<NotaTotal> {
   try {
     let tableName = '';
     if (tableNumber === 1) {
-      tableName = 'nota_butiran_baki_bank';
+      tableName = 'nota_baki_bank';
     } else if (tableNumber === 2) {
-      tableName = 'nota_butiran_baki_pelaburan';
+      tableName = 'nota_baki_pelaburan';
     } else if (tableNumber === 3) {
-      tableName = 'nota_butiran_baki_deposit';
+      tableName = 'nota_baki_deposit';
     }
 
     if (!tableName) return { semasa: 0, sebelum: 0 };
 
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT
-        SUM(jumlah_tahun_semasa) as semasa,
-        SUM(jumlah_tahun_sebelum) as sebelum
+        SUM(baki_tahun_semasa) as semasa,
+        SUM(baki_tahun_sebelum) as sebelum
        FROM ${tableName}
        WHERE tahun = ?`,
       [tahun]
@@ -57,27 +57,27 @@ async function getNotaButiranBakiTotal(tableNumber: number, tahun: number): Prom
       sebelum: parseFloat(rows[0]?.sebelum?.toString() || '0')
     };
   } catch (error) {
-    console.error(`Error fetching nota butiran baki table ${tableNumber}:`, error);
+    console.error(`Error fetching nota baki table ${tableNumber}:`, error);
     return { semasa: 0, sebelum: 0 };
   }
 }
 
-// Helper function to get total from nota-butiran-baki-31dis
+// Helper function to get total from nota-baki-31dis tables - Baki 31 Dis
 async function getNotaButiranBaki31DisTotal(tableNumber: number, tahun: number): Promise<NotaTotal> {
   try {
     let tableName = '';
     if (tableNumber === 21) {
-      tableName = 'nota_butiran_baki_31dis_bank';
+      tableName = 'nota_baki_bank_31dis';
     } else if (tableNumber === 22) {
-      tableName = 'nota_butiran_baki_31dis_pelaburan';
+      tableName = 'nota_baki_pelaburan_31dis';
     }
 
     if (!tableName) return { semasa: 0, sebelum: 0 };
 
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT
-        SUM(jumlah_tahun_semasa) as semasa,
-        SUM(jumlah_tahun_sebelum) as sebelum
+        SUM(baki_tahun_semasa) as semasa,
+        SUM(baki_tahun_sebelum) as sebelum
        FROM ${tableName}
        WHERE tahun = ?`,
       [tahun]
@@ -87,7 +87,7 @@ async function getNotaButiranBaki31DisTotal(tableNumber: number, tahun: number):
       sebelum: parseFloat(rows[0]?.sebelum?.toString() || '0')
     };
   } catch (error) {
-    console.error(`Error fetching nota butiran baki 31dis table ${tableNumber}:`, error);
+    console.error(`Error fetching nota baki 31dis table ${tableNumber}:`, error);
     return { semasa: 0, sebelum: 0 };
   }
 }
