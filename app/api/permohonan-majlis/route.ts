@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
        ${whereClause}
        ORDER BY pm.created_at DESC
        LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+      [...params, String(limit), String(offset)]
     );
 
     return NextResponse.json({
