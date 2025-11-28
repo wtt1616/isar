@@ -240,12 +240,13 @@ export default function KeywordsManagementPage() {
       <div className="container mt-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex align-items-center gap-3">
-            <a
-              href="/financial/transactions"
+            <button
+              type="button"
               className="btn btn-outline-secondary"
+              onClick={() => window.history.back()}
             >
               &larr; Kembali
-            </a>
+            </button>
             <h2 className="mb-0">Pengurusan Keyword Kategori</h2>
           </div>
           <button className="btn btn-primary" onClick={handleAdd}>
