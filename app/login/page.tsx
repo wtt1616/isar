@@ -216,41 +216,44 @@ export default function LoginPage() {
           <div className="d-flex gap-2 flex-wrap">
             <a
               href="/kalendar-aktiviti"
-              className="btn btn-outline-primary d-flex align-items-center"
+              className="btn btn-outline-primary d-flex align-items-center justify-content-center"
+              title="Kalendar Aktiviti"
               style={{
-                padding: '0.625rem 1.5rem',
+                width: '44px',
+                height: '44px',
                 borderRadius: '0.5rem',
-                fontWeight: '600'
+                fontSize: '1.25rem'
               }}
             >
-              <i className="bi bi-calendar-event me-2"></i>
-              Kalendar Aktiviti
+              <i className="bi bi-calendar-event"></i>
             </a>
             <a
               href="/permohonan-majlis"
-              className="btn btn-outline-success d-flex align-items-center"
+              className="btn btn-outline-success d-flex align-items-center justify-content-center"
+              title="Permohonan Majlis"
               style={{
-                padding: '0.625rem 1.5rem',
+                width: '44px',
+                height: '44px',
                 borderRadius: '0.5rem',
-                fontWeight: '600'
+                fontSize: '1.25rem'
               }}
             >
-              <i className="bi bi-calendar-plus me-2"></i>
-              Permohonan Majlis
+              <i className="bi bi-calendar-plus"></i>
             </a>
             <button
-              className="btn btn-success d-flex align-items-center"
+              className="btn btn-success d-flex align-items-center justify-content-center"
               onClick={() => setShowLoginModal(true)}
+              title="Staff Login"
               style={{
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 border: 'none',
-                padding: '0.625rem 1.5rem',
+                width: '44px',
+                height: '44px',
                 borderRadius: '0.5rem',
-                fontWeight: '600'
+                fontSize: '1.25rem'
               }}
             >
-              <i className="bi bi-box-arrow-in-right me-2"></i>
-              Staff Login
+              <i className="bi bi-box-arrow-in-right"></i>
             </button>
           </div>
         </div>
