@@ -180,7 +180,7 @@ export default function PermohonanMajlisPage() {
                       }}
                     />
                     <div className="text-start">
-                      <h4 className="mb-0 text-success fw-bold">SURAU AR-RAUDHAH</h4>
+                      <h4 className="mb-0 fw-bold" style={{ color: '#8B0000' }}>SURAU AR-RAUDHAH</h4>
                       <small className="text-muted">
                         Lot 41907, Jalan Impian Makmur 3,<br />
                         Saujana Impian, 43000 Kajang, Selangor Darul Ehsan
