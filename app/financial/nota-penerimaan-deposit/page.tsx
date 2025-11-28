@@ -209,7 +209,10 @@ export default function NotaPenerimaanDepositPage() {
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h4 className="mb-0">Selenggara Nota Butiran Penerimaan Deposit Diterima/Wang Cagaran</h4>
+        <div className="d-flex align-items-center gap-3">
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => window.history.back()}>&larr; Kembali</button>
+          <h4 className="mb-0">Selenggara Nota Butiran Penerimaan Deposit Diterima/Wang Cagaran</h4>
+        </div>
         <div className="d-flex gap-2 align-items-center">
           <label className="form-label mb-0 me-2">Tahun:</label>
           <select

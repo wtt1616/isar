@@ -191,10 +191,19 @@ export default function NotaButiranBakiPage() {
     <div className="container-fluid py-4">
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="mb-0">
-          <i className="bi bi-journal-text me-2"></i>
-          Nota Butiran Baki 1 Januari
-        </h4>
+        <div className="d-flex align-items-center gap-3">
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => window.history.back()}
+          >
+            &larr; Kembali
+          </button>
+          <h4 className="mb-0">
+            <i className="bi bi-journal-text me-2"></i>
+            Nota Butiran Baki 1 Januari
+          </h4>
+        </div>
         <div className="d-flex gap-2 align-items-center">
           <label className="form-label mb-0 me-2">Tahun:</label>
           <select
