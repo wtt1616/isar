@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { RujukanKategori, PenerimaanCategory, PembayaranCategory } from '@/types';
 
@@ -240,12 +241,12 @@ export default function KeywordsManagementPage() {
       <div className="container mt-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex align-items-center gap-3">
-            <button
+            <Link
+              href="/financial/transactions"
               className="btn btn-outline-secondary"
-              onClick={() => router.push('/financial/transactions')}
             >
-              <i className="bi bi-arrow-left me-1"></i> Kembali
-            </button>
+              &larr; Kembali
+            </Link>
             <h2 className="mb-0">Pengurusan Keyword Kategori</h2>
           </div>
           <button className="btn btn-primary" onClick={handleAdd}>
