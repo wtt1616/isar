@@ -132,8 +132,13 @@ export default function KalendarAktivitiPage() {
             <div className="row align-items-center">
               <div className="col-md-6 mb-3 mb-md-0">
                 <div className="d-flex align-items-center gap-3">
-                  <a href="/login" className="btn btn-outline-secondary btn-sm">
-                    &larr; Kembali
+                  <a
+                    href="/login"
+                    className="btn btn-outline-secondary btn-sm"
+                    title="Kembali ke halaman utama"
+                    data-bs-toggle="tooltip"
+                  >
+                    <i className="bi bi-house-door"></i>
                   </a>
                   <div>
                     <h4 className="mb-0" style={{ color: '#8B0000' }}>
@@ -146,14 +151,29 @@ export default function KalendarAktivitiPage() {
               </div>
               <div className="col-md-6 text-md-end">
                 <div className="btn-group">
-                  <button className="btn btn-outline-secondary" onClick={() => changeMonth(-1)}>
-                    <i className="bi bi-chevron-left"></i> Sebelum
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => changeMonth(-1)}
+                    title="Bulan sebelumnya"
+                    data-bs-toggle="tooltip"
+                  >
+                    <i className="bi bi-chevron-left"></i>
                   </button>
-                  <button className="btn btn-primary" onClick={goToToday}>
-                    Hari Ini
+                  <button
+                    className="btn btn-primary"
+                    onClick={goToToday}
+                    title="Pergi ke hari ini"
+                    data-bs-toggle="tooltip"
+                  >
+                    <i className="bi bi-calendar-check"></i>
                   </button>
-                  <button className="btn btn-outline-secondary" onClick={() => changeMonth(1)}>
-                    Seterusnya <i className="bi bi-chevron-right"></i>
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => changeMonth(1)}
+                    title="Bulan seterusnya"
+                    data-bs-toggle="tooltip"
+                  >
+                    <i className="bi bi-chevron-right"></i>
                   </button>
                 </div>
               </div>
