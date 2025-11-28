@@ -113,7 +113,7 @@ export default function KalendarAktivitiPage() {
   const firstDay = getFirstDayOfMonth(year, month);
   const today = new Date().toISOString().split('T')[0];
 
-  const calendarDays = [];
+  const calendarDays: (number | null)[] = [];
   // Add empty cells for days before the first day of the month
   for (let i = 0; i < firstDay; i++) {
     calendarDays.push(null);
