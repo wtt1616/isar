@@ -451,6 +451,49 @@ h5 {
   border-color: var(--gray-200);
 }
 
+/* Nested Dropdown (Submenu) Support */
+.dropdown-menu .dropend {
+  position: relative;
+}
+
+.dropdown-menu .dropend .dropdown-menu {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 0.125rem;
+  display: none;
+}
+
+.dropdown-menu .dropend:hover > .dropdown-menu,
+.dropdown-menu .dropend > .dropdown-toggle:focus + .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu .dropend > .dropdown-toggle::after {
+  border-left: 0.3em solid;
+  border-top: 0.3em solid transparent;
+  border-bottom: 0.3em solid transparent;
+  border-right: 0;
+  vertical-align: middle;
+  margin-left: auto;
+}
+
+.dropdown-menu .dropend > .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Dropdown header styling */
+.dropdown-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-600);
+  padding: 0.5rem 1rem;
+}
+
 /* Modal Enhancements */
 .modal-content {
   border-radius: var(--radius-xl);
