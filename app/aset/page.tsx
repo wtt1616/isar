@@ -38,6 +38,7 @@ interface Kategori {
   id: number;
   kod_kategori: string;
   nama_kategori: string;
+  jenis_aset: 'Harta Modal' | 'Inventori' | 'Kedua-dua';
 }
 
 const STATUS_COLORS: { [key: string]: string } = {
