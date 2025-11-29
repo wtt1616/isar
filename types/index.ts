@@ -205,3 +205,241 @@ export interface RujukanKategori {
   created_at: Date;
   updated_at: Date;
 }
+
+// =====================================
+// Pengurusan Aset (Asset Management) Types
+// Based on JAIS Guidelines BR-AMS 001-011
+// =====================================
+
+export type JenisAset = 'Harta Modal' | 'Inventori';
+export type StatusAset = 'Sedang Digunakan' | 'Tidak Digunakan' | 'Rosak' | 'Sedang Diselenggara' | 'Hilang' | 'Dilupuskan';
+export type KeadaanAset = 'Baik' | 'Rosak Ringan' | 'Rosak Teruk' | 'Hilang' | 'Tidak Dijumpai';
+export type KaedahPelupusan = 'Jualan' | 'Tukar Barang' | 'Sumbangan/Hadiah' | 'Serahan' | 'Musnah/Buang/Bakar';
+export type JenisPenyelenggaraan = 'Pembaikan' | 'Servis Berkala' | 'Penggantian Komponen' | 'Naik Taraf' | 'Lain-lain';
+export type JenisPergerakan = 'Pindahan' | 'Pinjaman';
+
+// Enhanced Inventory interface (BR-AMS 002)
+export interface InventoryEnhanced extends Inventory {
+  kategori?: string;
+  sub_kategori?: string;
+  jenama?: string;
+  model?: string;
+  no_siri_pembuat?: string;
+  tarikh_terima?: string;
+  harga_asal?: number;
+  lokasi_id?: number;
+  status?: StatusAset;
+  catatan?: string;
+  gambar?: string;
+  tarikh_lupus?: string;
+  kaedah_lupus?: string;
+  lokasi_nama?: string;
+}
+
+// Enhanced HartaModal interface (BR-AMS 001)
+export interface HartaModalEnhanced extends HartaModal {
+  kategori?: string;
+  sub_kategori?: string;
+  jenama?: string;
+  model?: string;
+  no_siri_pembuat?: string;
+  tarikh_terima?: string;
+  harga_asal?: number;
+  lokasi_id?: number;
+  status?: StatusAset;
+  catatan?: string;
+  gambar?: string;
+  tarikh_lupus?: string;
+  kaedah_lupus?: string;
+  jangka_hayat_tahun?: number;
+  nilai_semasa?: number;
+  lokasi_nama?: string;
+}
+
+// Lokasi Aset (BR-AMS 003)
+export interface LokasiAset {
+  id: number;
+  kod_lokasi: string;
+  nama_lokasi: string;
+  keterangan?: string;
+  pegawai_bertanggungjawab?: string;
+  no_tel_pegawai?: string;
+  aktif: boolean;
+  created_by?: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Kategori Aset
+export interface KategoriAset {
+  id: number;
+  kod_kategori: string;
+  nama_kategori: string;
+  jenis_aset: 'Harta Modal' | 'Inventori' | 'Kedua-dua';
+  keterangan?: string;
+  aktif: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Pergerakan/Pinjaman Aset (BR-AMS 004)
+export interface PergerakanAset {
+  id: number;
+  no_rujukan: string;
+  jenis_pergerakan: JenisPergerakan;
+  jenis_aset: JenisAset;
+  aset_id: number;
+  no_siri_pendaftaran: string;
+  keterangan_aset: string;
+  lokasi_asal_id?: number;
+  lokasi_tujuan_id?: number;
+  lokasi_asal_text?: string;
+  lokasi_tujuan_text?: string;
+  nama_peminjam?: string;
+  no_tel_peminjam?: string;
+  tujuan_pinjaman?: string;
+  tarikh_permohonan: string;
+  tarikh_mula: string;
+  tarikh_dijangka_pulang?: string;
+  tarikh_sebenar_pulang?: string;
+  status: 'Permohonan' | 'Diluluskan' | 'Ditolak' | 'Dalam Pergerakan' | 'Dipulangkan' | 'Tidak Dipulangkan';
+  keadaan_semasa_keluar?: KeadaanAset;
+  keadaan_semasa_pulang?: KeadaanAset;
+  catatan?: string;
+  dimohon_oleh: number;
+  diluluskan_oleh?: number;
+  tarikh_kelulusan?: string;
+  diterima_oleh?: string;
+  tarikh_terima?: string;
+  created_at: Date;
+  updated_at: Date;
+  nama_pemohon?: string;
+  nama_pelulus?: string;
+  lokasi_asal_nama?: string;
+  lokasi_tujuan_nama?: string;
+}
+
+// Pemeriksaan Aset (BR-AMS 005)
+export interface PemeriksaanAset {
+  id: number;
+  tarikh_pemeriksaan: string;
+  jenis_aset: JenisAset;
+  aset_id: number;
+  no_siri_pendaftaran: string;
+  keadaan: KeadaanAset;
+  catatan?: string;
+  tindakan_diperlukan?: string;
+  diperiksa_oleh: number;
+  disahkan_oleh?: number;
+  tarikh_pengesahan?: string;
+  status_tindakan: 'Belum Diambil' | 'Sedang Dijalankan' | 'Selesai';
+  created_at: Date;
+  updated_at: Date;
+  nama_pemeriksa?: string;
+  nama_pengesah?: string;
+  keterangan_aset?: string;
+}
+
+// Penyelenggaraan Aset (BR-AMS 006)
+export interface PenyelenggaraanAset {
+  id: number;
+  jenis_aset: JenisAset;
+  aset_id: number;
+  no_siri_pendaftaran: string;
+  tarikh_penyelenggaraan: string;
+  jenis_penyelenggaraan: JenisPenyelenggaraan;
+  keterangan_kerja: string;
+  nama_kontraktor?: string;
+  no_tel_kontraktor?: string;
+  kos: number;
+  no_resit?: string;
+  tarikh_siap?: string;
+  status: 'Dirancang' | 'Dalam Proses' | 'Selesai' | 'Dibatalkan';
+  catatan?: string;
+  dilaksana_oleh?: number;
+  disahkan_oleh?: number;
+  created_at: Date;
+  updated_at: Date;
+  nama_pelaksana?: string;
+  nama_pengesah?: string;
+  keterangan_aset?: string;
+}
+
+// Pelupusan Aset (BR-AMS 007 & 008)
+export interface PelupusanAset {
+  id: number;
+  no_rujukan: string;
+  jenis_aset: JenisAset;
+  aset_id: number;
+  no_siri_pendaftaran: string;
+  keterangan_aset: string;
+  harga_asal: number;
+  nilai_semasa: number;
+  tarikh_permohonan: string;
+  sebab_pelupusan: string;
+  kaedah_pelupusan: KaedahPelupusan;
+  harga_jualan?: number;
+  nama_pembeli?: string;
+  nama_penerima?: string;
+  alamat_penerima?: string;
+  status: 'Permohonan' | 'Dalam Semakan' | 'Diluluskan' | 'Ditolak' | 'Selesai';
+  tarikh_kelulusan?: string;
+  diluluskan_oleh?: number;
+  tarikh_pelupusan?: string;
+  catatan?: string;
+  dokumen_sokongan?: string;
+  dimohon_oleh: number;
+  created_at: Date;
+  updated_at: Date;
+  nama_pemohon?: string;
+  nama_pelulus?: string;
+}
+
+// Kehilangan/Hapus Kira Aset (BR-AMS 009)
+export interface KehilanganAset {
+  id: number;
+  no_rujukan: string;
+  jenis_aset: JenisAset;
+  aset_id: number;
+  no_siri_pendaftaran: string;
+  keterangan_aset: string;
+  harga_asal: number;
+  nilai_semasa: number;
+  tarikh_kehilangan: string;
+  lokasi_terakhir?: string;
+  sebab_kehilangan: string;
+  tindakan_diambil?: string;
+  no_laporan_polis?: string;
+  tarikh_laporan_polis?: string;
+  balai_polis?: string;
+  status: 'Dilaporkan' | 'Dalam Siasatan' | 'Dijumpai' | 'Hapus Kira Dalam Proses' | 'Hapus Kira Diluluskan' | 'Hapus Kira Ditolak';
+  tarikh_mohon_hapus_kira?: string;
+  tarikh_lulus_hapus_kira?: string;
+  diluluskan_oleh?: number;
+  catatan?: string;
+  dilaporkan_oleh: number;
+  created_at: Date;
+  updated_at: Date;
+  nama_pelapor?: string;
+  nama_pelulus?: string;
+}
+
+// Combined Asset View
+export interface SenaraiAset {
+  jenis_aset: JenisAset;
+  id: number;
+  no_siri_pendaftaran: string;
+  keterangan: string;
+  kategori?: string;
+  sub_kategori?: string;
+  jenama?: string;
+  model?: string;
+  no_siri_pembuat?: string;
+  tarikh_terima?: string;
+  harga_asal?: number;
+  cara_diperolehi: string;
+  status?: StatusAset;
+  nama_lokasi?: string;
+  catatan?: string;
+  created_at: Date;
+}

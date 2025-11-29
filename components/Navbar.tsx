@@ -89,24 +89,71 @@ export default function Navbar() {
             </li>
 
             {(userRole === 'admin' || userRole === 'inventory_staff') && (
-              <>
-                <li className="nav-item">
-                  <Link
-                    className={`nav-link ${pathname.startsWith('/inventory') && !pathname.startsWith('/inventory') ? 'active' : pathname === '/inventory' || pathname.startsWith('/inventory/') ? 'active' : ''}`}
-                    href="/inventory"
-                  >
-                    Inventori
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link
-                    className={`nav-link ${pathname.startsWith('/harta-modal') ? 'active' : ''}`}
-                    href="/harta-modal"
-                  >
-                    Harta Modal
-                  </Link>
-                </li>
-              </>
+              <li className="nav-item dropdown">
+                <a
+                  className={`nav-link dropdown-toggle ${pathname.startsWith('/aset') || pathname.startsWith('/inventory') || pathname.startsWith('/harta-modal') ? 'active' : ''}`}
+                  href="#"
+                  id="asetDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i className="bi bi-box-seam me-1"></i>
+                  Pengurusan Aset
+                </a>
+                <ul className="dropdown-menu" aria-labelledby="asetDropdown">
+                  <li>
+                    <Link className="dropdown-item" href="/aset">
+                      <i className="bi bi-speedometer2 me-2"></i>
+                      Dashboard Aset
+                    </Link>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/lokasi">
+                      <i className="bi bi-geo-alt me-2"></i>
+                      Lokasi Aset
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/pemeriksaan">
+                      <i className="bi bi-clipboard-check me-2"></i>
+                      Pemeriksaan Aset
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/penyelenggaraan">
+                      <i className="bi bi-tools me-2"></i>
+                      Penyelenggaraan
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/pergerakan">
+                      <i className="bi bi-arrow-left-right me-2"></i>
+                      Pergerakan/Pinjaman
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/pelupusan">
+                      <i className="bi bi-trash me-2"></i>
+                      Pelupusan Aset
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/kehilangan">
+                      <i className="bi bi-search me-2"></i>
+                      Kehilangan/Hapus Kira
+                    </Link>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <Link className="dropdown-item" href="/aset/laporan">
+                      <i className="bi bi-file-earmark-text me-2"></i>
+                      Laporan BR-AMS
+                    </Link>
+                  </li>
+                </ul>
+              </li>
             )}
 
             {(userRole === 'admin' || userRole === 'bendahari' || userRole === 'head_imam') && (
