@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import pool from '@/lib/db';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { sendPermohonanMajlisConfirmation, sendPermohonanStatusUpdate } from '@/lib/whatsapp';
 
 // GET - Fetch all permohonan (admin only) or check availability
 export async function GET(request: NextRequest) {
@@ -129,9 +130,32 @@ export async function POST(request: NextRequest) {
       ]
     );
 
+    // Send WhatsApp confirmation to applicant
+    try {
+      await sendPermohonanMajlisConfirmation({
+        id: result.insertId,
+        nama_pemohon,
+        no_kad_pengenalan,
+        alamat,
+        no_telefon_rumah,
+        no_handphone,
+        tajuk_majlis,
+        tarikh_majlis,
+        hari_majlis,
+        masa_majlis,
+        waktu_majlis,
+        jumlah_jemputan: parseInt(jumlah_jemputan),
+        peralatan: peralatan || [],
+        peralatan_lain
+      });
+    } catch (whatsappError) {
+      console.error('Failed to send WhatsApp confirmation:', whatsappError);
+      // Continue even if WhatsApp fails - don't fail the submission
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Permohonan berjaya dihantar. Anda akan dihubungi selepas permohonan diproses.',
+      message: 'Permohonan berjaya dihantar. Salinan permohonan telah dihantar ke WhatsApp anda.',
       id: result.insertId
     });
   } catch (error) {
@@ -163,6 +187,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Sila nyatakan sebab penolakan' }, { status: 400 });
     }
 
+    // Get permohonan data for WhatsApp notification
+    const [permohonanData] = await pool.execute<RowDataPacket[]>(
+      `SELECT * FROM permohonan_majlis WHERE id = ?`,
+      [id]
+    );
+
+    if ((permohonanData as any[]).length === 0) {
+      return NextResponse.json({ error: 'Permohonan tidak dijumpai' }, { status: 404 });
+    }
+
+    const permohonan = (permohonanData as any[])[0];
+
     await pool.execute(
       `UPDATE permohonan_majlis
        SET status = ?, approved_by = ?, approved_at = ?, rejection_reason = ?
@@ -176,7 +212,43 @@ export async function PUT(request: NextRequest) {
       ]
     );
 
-    return NextResponse.json({ success: true, message: 'Status berjaya dikemaskini' });
+    // Send WhatsApp notification to applicant about status update
+    if (status === 'approved' || status === 'rejected') {
+      try {
+        const peralatan = typeof permohonan.peralatan === 'string'
+          ? JSON.parse(permohonan.peralatan)
+          : permohonan.peralatan || [];
+
+        await sendPermohonanStatusUpdate(
+          {
+            id: permohonan.id,
+            nama_pemohon: permohonan.nama_pemohon,
+            no_kad_pengenalan: permohonan.no_kad_pengenalan,
+            alamat: permohonan.alamat,
+            no_telefon_rumah: permohonan.no_telefon_rumah,
+            no_handphone: permohonan.no_handphone,
+            tajuk_majlis: permohonan.tajuk_majlis,
+            tarikh_majlis: permohonan.tarikh_majlis,
+            hari_majlis: permohonan.hari_majlis,
+            masa_majlis: permohonan.masa_majlis,
+            waktu_majlis: permohonan.waktu_majlis,
+            jumlah_jemputan: permohonan.jumlah_jemputan,
+            peralatan,
+            peralatan_lain: permohonan.peralatan_lain
+          },
+          status,
+          rejection_reason
+        );
+      } catch (whatsappError) {
+        console.error('Failed to send WhatsApp status update:', whatsappError);
+        // Continue even if WhatsApp fails
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Status berjaya dikemaskini. Notifikasi WhatsApp telah dihantar kepada pemohon.`
+    });
   } catch (error) {
     console.error('Error updating permohonan majlis:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

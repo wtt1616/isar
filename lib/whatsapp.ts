@@ -204,6 +204,210 @@ export async function sendCustomMessage(phoneNumber: string, message: string): P
 }
 
 /**
+ * Interface for Permohonan Majlis data
+ */
+interface PermohonanMajlisData {
+  id: number;
+  nama_pemohon: string;
+  no_kad_pengenalan: string;
+  alamat: string;
+  no_telefon_rumah?: string;
+  no_handphone: string;
+  tajuk_majlis: string;
+  tarikh_majlis: string;
+  hari_majlis: string;
+  masa_majlis: string;
+  waktu_majlis: string;
+  jumlah_jemputan: number;
+  peralatan: string[];
+  peralatan_lain?: string;
+}
+
+const PERALATAN_LABELS: Record<string, string> = {
+  'meja_makan': 'Meja Makan',
+  'kerusi_makan': 'Kerusi Makan',
+  'pa_system': 'PA System',
+  'pinggan': 'Pinggan',
+  'gelas': 'Gelas',
+  'perkhidmatan_katering': 'Perkhidmatan Katering'
+};
+
+/**
+ * Send WhatsApp confirmation to applicant when permohonan majlis is submitted
+ */
+export async function sendPermohonanMajlisConfirmation(data: PermohonanMajlisData): Promise<boolean> {
+  const phoneNumber = formatPhoneNumber(data.no_handphone);
+
+  // Format date nicely
+  const date = new Date(data.tarikh_majlis);
+  const formattedDate = date.toLocaleDateString('ms-MY', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  // Format peralatan list
+  const peralatanList = data.peralatan
+    .map(p => PERALATAN_LABELS[p] || p)
+    .join(', ');
+
+  const message = `🕌 *SURAU AR-RAUDHAH*
+*Permohonan Majlis Diterima*
+
+السلام عليكم ورحمة الله وبركاته
+
+Yth. *${data.nama_pemohon}*,
+
+Permohonan anda untuk mengadakan majlis di Surau Ar-Raudhah telah *BERJAYA DITERIMA* dan sedang diproses.
+
+━━━━━━━━━━━━━━━━━━
+📋 *SALINAN PERMOHONAN*
+━━━━━━━━━━━━━━━━━━
+
+*No. Rujukan:* PM-${String(data.id).padStart(4, '0')}
+
+👤 *MAKLUMAT PEMOHON*
+• Nama: ${data.nama_pemohon}
+• No. KP: ${data.no_kad_pengenalan}
+• Alamat: ${data.alamat}
+• No. HP: ${data.no_handphone}${data.no_telefon_rumah ? `\n• No. Rumah: ${data.no_telefon_rumah}` : ''}
+
+📅 *MAKLUMAT MAJLIS*
+• Tajuk: ${data.tajuk_majlis}
+• Tarikh: ${formattedDate}
+• Hari: ${data.hari_majlis}
+• Masa: ${data.masa_majlis}
+• Waktu: ${data.waktu_majlis.charAt(0).toUpperCase() + data.waktu_majlis.slice(1)}
+• Jemputan: ${data.jumlah_jemputan} orang
+
+🔧 *PERALATAN*
+${peralatanList || 'Tiada'}${data.peralatan_lain ? `\n• Lain-lain: ${data.peralatan_lain}` : ''}
+
+━━━━━━━━━━━━━━━━━━
+
+Pihak pengurusan Surau Ar-Raudhah akan menghubungi anda melalui WhatsApp untuk memaklumkan status kelulusan permohonan.
+
+📞 *Sebarang pertanyaan:*
+• Pengerusi: 013-645 3396
+• Setiausaha: 012-670 9502
+• Siak: 012-974 3858
+
+جزاك الله خيرا
+_Sistem iSAR - Surau Ar-Raudhah_`;
+
+  const result = await sendFonnteMessage(phoneNumber, message);
+
+  if (result.status) {
+    console.log(`[Permohonan Majlis] Confirmation sent to ${data.nama_pemohon} (${data.no_handphone})`);
+    return true;
+  } else {
+    console.error(`[Permohonan Majlis] Failed to send confirmation to ${data.nama_pemohon}:`, result.reason);
+    return false;
+  }
+}
+
+/**
+ * Send WhatsApp notification when permohonan status is updated
+ */
+export async function sendPermohonanStatusUpdate(
+  data: PermohonanMajlisData,
+  status: 'approved' | 'rejected',
+  rejectionReason?: string
+): Promise<boolean> {
+  const phoneNumber = formatPhoneNumber(data.no_handphone);
+
+  // Format date nicely
+  const date = new Date(data.tarikh_majlis);
+  const formattedDate = date.toLocaleDateString('ms-MY', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  let message: string;
+
+  if (status === 'approved') {
+    message = `🕌 *SURAU AR-RAUDHAH*
+*Permohonan Majlis DILULUSKAN*
+
+السلام عليكم ورحمة الله وبركاته
+
+Yth. *${data.nama_pemohon}*,
+
+Alhamdulillah, permohonan anda untuk mengadakan majlis di Surau Ar-Raudhah telah *DILULUSKAN* ✅
+
+━━━━━━━━━━━━━━━━━━
+📋 *BUTIRAN MAJLIS*
+━━━━━━━━━━━━━━━━━━
+
+*No. Rujukan:* PM-${String(data.id).padStart(4, '0')}
+*Tajuk:* ${data.tajuk_majlis}
+*Tarikh:* ${formattedDate}
+*Masa:* ${data.masa_majlis}
+*Jemputan:* ${data.jumlah_jemputan} orang
+
+━━━━━━━━━━━━━━━━━━
+
+⚠️ *PERINGATAN PENTING:*
+• Sila pastikan kebersihan surau dijaga selepas majlis
+• Kemudahan surau perlu dikembalikan ke keadaan asal
+• Dilarang merokok di kawasan surau
+
+📞 *Sebarang pertanyaan:*
+• Pengerusi: 013-645 3396
+• Setiausaha: 012-670 9502
+
+Terima kasih atas kerjasama anda.
+
+جزاك الله خيرا
+_Sistem iSAR - Surau Ar-Raudhah_`;
+  } else {
+    message = `🕌 *SURAU AR-RAUDHAH*
+*Permohonan Majlis TIDAK DILULUSKAN*
+
+السلام عليكم ورحمة الله وبركاته
+
+Yth. *${data.nama_pemohon}*,
+
+Dengan hormatnya dimaklumkan bahawa permohonan anda untuk mengadakan majlis di Surau Ar-Raudhah *TIDAK DAPAT DILULUSKAN* ❌
+
+━━━━━━━━━━━━━━━━━━
+
+*No. Rujukan:* PM-${String(data.id).padStart(4, '0')}
+*Tajuk:* ${data.tajuk_majlis}
+*Tarikh:* ${formattedDate}
+
+*Sebab Penolakan:*
+${rejectionReason || 'Tidak dinyatakan'}
+
+━━━━━━━━━━━━━━━━━━
+
+Anda boleh menghubungi pihak pengurusan untuk maklumat lanjut atau membuat permohonan baru pada tarikh lain.
+
+📞 *Pertanyaan:*
+• Pengerusi: 013-645 3396
+• Setiausaha: 012-670 9502
+
+Mohon maaf atas sebarang kesulitan.
+
+جزاك الله خيرا
+_Sistem iSAR - Surau Ar-Raudhah_`;
+  }
+
+  const result = await sendFonnteMessage(phoneNumber, message);
+
+  if (result.status) {
+    console.log(`[Permohonan Majlis] Status update (${status}) sent to ${data.nama_pemohon}`);
+    return true;
+  } else {
+    console.error(`[Permohonan Majlis] Failed to send status update to ${data.nama_pemohon}:`, result.reason);
+    return false;
+  }
+}
+
+/**
  * Check if WhatsApp (Fonnte) is configured
  */
 export function isWhatsAppConfigured(): boolean {
