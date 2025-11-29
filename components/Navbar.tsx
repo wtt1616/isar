@@ -208,7 +208,7 @@ export default function Navbar() {
                   <i className="bi bi-cash-coin me-1"></i>
                   Kewangan
                 </a>
-                <ul className="dropdown-menu" aria-labelledby="financialDropdown">
+                <ul className="dropdown-menu dropdown-menu-lg" aria-labelledby="financialDropdown" style={{ minWidth: '280px' }}>
                   <li>
                     <Link className="dropdown-item" href="/financial">
                       <i className="bi bi-bank me-2"></i>
@@ -228,6 +228,105 @@ export default function Navbar() {
                         <Link className="dropdown-item" href="/financial/keywords">
                           <i className="bi bi-key me-2"></i>
                           Keyword Auto-Kategori
+                        </Link>
+                      </li>
+
+                      <li><hr className="dropdown-divider" /></li>
+
+                      {/* Nota Butiran Baki */}
+                      <li className="dropdown-header text-muted small">
+                        <i className="bi bi-journal-bookmark me-1"></i>
+                        Nota Butiran Baki
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-butiran-baki">
+                          Baki 1 Januari
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-butiran-baki-31dis">
+                          Baki 31 Disember
+                        </Link>
+                      </li>
+
+                      <li><hr className="dropdown-divider" /></li>
+
+                      {/* Nota Penerimaan */}
+                      <li className="dropdown-header text-muted small">
+                        <i className="bi bi-arrow-down-circle me-1 text-success"></i>
+                        Nota Penerimaan
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-sumbangan-am">
+                          Sumbangan Am
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-sumbangan-khas">
+                          Sumbangan Khas
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-elaun">
+                          Elaun
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-pelaburan">
+                          Pelaburan
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-deposit">
+                          Deposit
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-hasil-sewaan">
+                          Hasil Sewaan
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-penerimaan-lain">
+                          Lain-lain
+                        </Link>
+                      </li>
+
+                      <li><hr className="dropdown-divider" /></li>
+
+                      {/* Nota Pembayaran */}
+                      <li className="dropdown-header text-muted small">
+                        <i className="bi bi-arrow-up-circle me-1 text-danger"></i>
+                        Nota Pembayaran
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-pembayaran-pentadbiran">
+                          Pentadbiran
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-pembayaran-sumber-manusia">
+                          Sumber Manusia
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-pembayaran-pembangunan">
+                          Pembangunan
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-pembayaran-dakwah">
+                          Dakwah
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-pembayaran-khidmat-sosial">
+                          Khidmat Sosial
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item ps-4" href="/financial/nota-pembayaran-aset">
+                          Aset
                         </Link>
                       </li>
                     </>
