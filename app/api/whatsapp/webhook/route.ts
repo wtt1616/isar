@@ -176,7 +176,7 @@ Sila hubungi Head Imam untuk mendaftarkan nombor telefon anda.`);
 
     // Check for CUTI/TIDAK HADIR command
     if (upperBody.startsWith('CUTI') || upperBody.startsWith('TIDAK HADIR') || upperBody.startsWith('TIDAKHADIR')) {
-      const parts = body.split(/\s+/).filter(p => p.length > 0);
+      const parts = body.split(/\s+/).filter((p: string) => p.length > 0);
 
       if (parts.length < 2) {
         await sendReply(from, `❌ Format tidak betul.
@@ -354,7 +354,7 @@ CUTI [tarikh] [waktu solat]`;
 
     // Check for BATAL/CANCEL command
     if (upperBody.startsWith('BATAL') || upperBody.startsWith('CANCEL')) {
-      const parts = body.split(/\s+/).filter(p => p.length > 0);
+      const parts = body.split(/\s+/).filter((p: string) => p.length > 0);
 
       if (parts.length < 2) {
         await sendReply(from, `❌ Format tidak betul.
