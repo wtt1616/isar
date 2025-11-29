@@ -4,42 +4,68 @@
 -- References: BR-AMS 001-011 forms
 
 -- =====================================================
+-- Helper procedure to add column if not exists
+-- =====================================================
+DROP PROCEDURE IF EXISTS AddColumnIfNotExists;
+DELIMITER //
+CREATE PROCEDURE AddColumnIfNotExists(
+    IN tableName VARCHAR(64),
+    IN columnName VARCHAR(64),
+    IN columnDef VARCHAR(500)
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = tableName
+        AND COLUMN_NAME = columnName
+    ) THEN
+        SET @sql = CONCAT('ALTER TABLE ', tableName, ' ADD COLUMN ', columnName, ' ', columnDef);
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END //
+DELIMITER ;
+
+-- =====================================================
 -- STEP 1: Enhance existing inventory table
 -- =====================================================
-ALTER TABLE inventory
-ADD COLUMN IF NOT EXISTS kategori VARCHAR(100) DEFAULT NULL COMMENT 'Kategori aset (Peralatan Pejabat, Perabot, dll)',
-ADD COLUMN IF NOT EXISTS sub_kategori VARCHAR(100) DEFAULT NULL COMMENT 'Sub-kategori aset',
-ADD COLUMN IF NOT EXISTS jenama VARCHAR(100) DEFAULT NULL COMMENT 'Jenama/Model',
-ADD COLUMN IF NOT EXISTS model VARCHAR(100) DEFAULT NULL COMMENT 'Model',
-ADD COLUMN IF NOT EXISTS no_siri_pembuat VARCHAR(100) DEFAULT NULL COMMENT 'No. Siri Pembuat',
-ADD COLUMN IF NOT EXISTS tarikh_terima DATE DEFAULT NULL COMMENT 'Tarikh Terima',
-ADD COLUMN IF NOT EXISTS harga_asal DECIMAL(15,2) DEFAULT 0 COMMENT 'Harga Asal (RM100 - RM1,999.99)',
-ADD COLUMN IF NOT EXISTS lokasi_id INT DEFAULT NULL COMMENT 'Lokasi aset',
-ADD COLUMN IF NOT EXISTS status ENUM('Sedang Digunakan', 'Tidak Digunakan', 'Rosak', 'Sedang Diselenggara', 'Hilang', 'Dilupuskan') DEFAULT 'Sedang Digunakan',
-ADD COLUMN IF NOT EXISTS catatan TEXT DEFAULT NULL COMMENT 'Catatan tambahan',
-ADD COLUMN IF NOT EXISTS gambar VARCHAR(255) DEFAULT NULL COMMENT 'Path gambar aset',
-ADD COLUMN IF NOT EXISTS tarikh_lupus DATE DEFAULT NULL COMMENT 'Tarikh pelupusan',
-ADD COLUMN IF NOT EXISTS kaedah_lupus VARCHAR(100) DEFAULT NULL COMMENT 'Kaedah pelupusan';
+CALL AddColumnIfNotExists('inventory', 'kategori', "VARCHAR(100) DEFAULT NULL COMMENT 'Kategori aset'");
+CALL AddColumnIfNotExists('inventory', 'sub_kategori', "VARCHAR(100) DEFAULT NULL COMMENT 'Sub-kategori aset'");
+CALL AddColumnIfNotExists('inventory', 'jenama', "VARCHAR(100) DEFAULT NULL COMMENT 'Jenama'");
+CALL AddColumnIfNotExists('inventory', 'model', "VARCHAR(100) DEFAULT NULL COMMENT 'Model'");
+CALL AddColumnIfNotExists('inventory', 'no_siri_pembuat', "VARCHAR(100) DEFAULT NULL COMMENT 'No. Siri Pembuat'");
+CALL AddColumnIfNotExists('inventory', 'tarikh_terima', "DATE DEFAULT NULL COMMENT 'Tarikh Terima'");
+CALL AddColumnIfNotExists('inventory', 'harga_asal', "DECIMAL(15,2) DEFAULT 0 COMMENT 'Harga Asal'");
+CALL AddColumnIfNotExists('inventory', 'lokasi_id', "INT DEFAULT NULL COMMENT 'Lokasi aset'");
+CALL AddColumnIfNotExists('inventory', 'status', "VARCHAR(50) DEFAULT 'Sedang Digunakan' COMMENT 'Status aset'");
+CALL AddColumnIfNotExists('inventory', 'catatan', "TEXT DEFAULT NULL COMMENT 'Catatan tambahan'");
+CALL AddColumnIfNotExists('inventory', 'gambar', "VARCHAR(255) DEFAULT NULL COMMENT 'Path gambar aset'");
+CALL AddColumnIfNotExists('inventory', 'tarikh_lupus', "DATE DEFAULT NULL COMMENT 'Tarikh pelupusan'");
+CALL AddColumnIfNotExists('inventory', 'kaedah_lupus', "VARCHAR(100) DEFAULT NULL COMMENT 'Kaedah pelupusan'");
 
 -- =====================================================
 -- STEP 2: Enhance existing harta_modal table
 -- =====================================================
-ALTER TABLE harta_modal
-ADD COLUMN IF NOT EXISTS kategori VARCHAR(100) DEFAULT NULL COMMENT 'Kategori aset (Peralatan Pejabat, Perabot, dll)',
-ADD COLUMN IF NOT EXISTS sub_kategori VARCHAR(100) DEFAULT NULL COMMENT 'Sub-kategori aset',
-ADD COLUMN IF NOT EXISTS jenama VARCHAR(100) DEFAULT NULL COMMENT 'Jenama/Model',
-ADD COLUMN IF NOT EXISTS model VARCHAR(100) DEFAULT NULL COMMENT 'Model',
-ADD COLUMN IF NOT EXISTS no_siri_pembuat VARCHAR(100) DEFAULT NULL COMMENT 'No. Siri Pembuat',
-ADD COLUMN IF NOT EXISTS tarikh_terima DATE DEFAULT NULL COMMENT 'Tarikh Terima',
-ADD COLUMN IF NOT EXISTS harga_asal DECIMAL(15,2) DEFAULT 0 COMMENT 'Harga Asal (>= RM2,000)',
-ADD COLUMN IF NOT EXISTS lokasi_id INT DEFAULT NULL COMMENT 'Lokasi aset',
-ADD COLUMN IF NOT EXISTS status ENUM('Sedang Digunakan', 'Tidak Digunakan', 'Rosak', 'Sedang Diselenggara', 'Hilang', 'Dilupuskan') DEFAULT 'Sedang Digunakan',
-ADD COLUMN IF NOT EXISTS catatan TEXT DEFAULT NULL COMMENT 'Catatan tambahan',
-ADD COLUMN IF NOT EXISTS gambar VARCHAR(255) DEFAULT NULL COMMENT 'Path gambar aset',
-ADD COLUMN IF NOT EXISTS tarikh_lupus DATE DEFAULT NULL COMMENT 'Tarikh pelupusan',
-ADD COLUMN IF NOT EXISTS kaedah_lupus VARCHAR(100) DEFAULT NULL COMMENT 'Kaedah pelupusan',
-ADD COLUMN IF NOT EXISTS jangka_hayat_tahun INT DEFAULT NULL COMMENT 'Jangka hayat dalam tahun',
-ADD COLUMN IF NOT EXISTS nilai_semasa DECIMAL(15,2) DEFAULT NULL COMMENT 'Nilai semasa selepas susut nilai';
+CALL AddColumnIfNotExists('harta_modal', 'kategori', "VARCHAR(100) DEFAULT NULL COMMENT 'Kategori aset'");
+CALL AddColumnIfNotExists('harta_modal', 'sub_kategori', "VARCHAR(100) DEFAULT NULL COMMENT 'Sub-kategori aset'");
+CALL AddColumnIfNotExists('harta_modal', 'jenama', "VARCHAR(100) DEFAULT NULL COMMENT 'Jenama'");
+CALL AddColumnIfNotExists('harta_modal', 'model', "VARCHAR(100) DEFAULT NULL COMMENT 'Model'");
+CALL AddColumnIfNotExists('harta_modal', 'no_siri_pembuat', "VARCHAR(100) DEFAULT NULL COMMENT 'No. Siri Pembuat'");
+CALL AddColumnIfNotExists('harta_modal', 'tarikh_terima', "DATE DEFAULT NULL COMMENT 'Tarikh Terima'");
+CALL AddColumnIfNotExists('harta_modal', 'harga_asal', "DECIMAL(15,2) DEFAULT 0 COMMENT 'Harga Asal'");
+CALL AddColumnIfNotExists('harta_modal', 'lokasi_id', "INT DEFAULT NULL COMMENT 'Lokasi aset'");
+CALL AddColumnIfNotExists('harta_modal', 'status', "VARCHAR(50) DEFAULT 'Sedang Digunakan' COMMENT 'Status aset'");
+CALL AddColumnIfNotExists('harta_modal', 'catatan', "TEXT DEFAULT NULL COMMENT 'Catatan tambahan'");
+CALL AddColumnIfNotExists('harta_modal', 'gambar', "VARCHAR(255) DEFAULT NULL COMMENT 'Path gambar aset'");
+CALL AddColumnIfNotExists('harta_modal', 'tarikh_lupus', "DATE DEFAULT NULL COMMENT 'Tarikh pelupusan'");
+CALL AddColumnIfNotExists('harta_modal', 'kaedah_lupus', "VARCHAR(100) DEFAULT NULL COMMENT 'Kaedah pelupusan'");
+CALL AddColumnIfNotExists('harta_modal', 'jangka_hayat_tahun', "INT DEFAULT NULL COMMENT 'Jangka hayat dalam tahun'");
+CALL AddColumnIfNotExists('harta_modal', 'nilai_semasa', "DECIMAL(15,2) DEFAULT NULL COMMENT 'Nilai semasa selepas susut nilai'");
+
+-- Clean up helper procedure
+DROP PROCEDURE IF EXISTS AddColumnIfNotExists;
 
 -- =====================================================
 -- STEP 3: Create lokasi_aset table (Asset Locations)
@@ -56,7 +82,6 @@ CREATE TABLE IF NOT EXISTS lokasi_aset (
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id),
     INDEX idx_kod_lokasi (kod_lokasi),
     INDEX idx_nama_lokasi (nama_lokasi)
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -80,8 +105,6 @@ CREATE TABLE IF NOT EXISTS pemeriksaan_aset (
     status_tindakan ENUM('Belum Diambil', 'Sedang Dijalankan', 'Selesai') DEFAULT 'Belum Diambil',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (diperiksa_oleh) REFERENCES users(id),
-    FOREIGN KEY (disahkan_oleh) REFERENCES users(id),
     INDEX idx_tarikh (tarikh_pemeriksaan),
     INDEX idx_jenis_aset (jenis_aset),
     INDEX idx_aset_id (aset_id),
@@ -111,8 +134,6 @@ CREATE TABLE IF NOT EXISTS penyelenggaraan_aset (
     disahkan_oleh INT DEFAULT NULL COMMENT 'ID pegawai yang mengesahkan',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (dilaksana_oleh) REFERENCES users(id),
-    FOREIGN KEY (disahkan_oleh) REFERENCES users(id),
     INDEX idx_tarikh (tarikh_penyelenggaraan),
     INDEX idx_jenis_aset (jenis_aset),
     INDEX idx_aset_id (aset_id),
@@ -153,8 +174,6 @@ CREATE TABLE IF NOT EXISTS pelupusan_aset (
     dimohon_oleh INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (dimohon_oleh) REFERENCES users(id),
-    FOREIGN KEY (diluluskan_oleh) REFERENCES users(id),
     INDEX idx_no_rujukan (no_rujukan),
     INDEX idx_tarikh_permohonan (tarikh_permohonan),
     INDEX idx_status (status),
@@ -200,10 +219,6 @@ CREATE TABLE IF NOT EXISTS pergerakan_aset (
     tarikh_terima DATE DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (lokasi_asal_id) REFERENCES lokasi_aset(id),
-    FOREIGN KEY (lokasi_tujuan_id) REFERENCES lokasi_aset(id),
-    FOREIGN KEY (dimohon_oleh) REFERENCES users(id),
-    FOREIGN KEY (diluluskan_oleh) REFERENCES users(id),
     INDEX idx_no_rujukan (no_rujukan),
     INDEX idx_jenis_pergerakan (jenis_pergerakan),
     INDEX idx_tarikh_mula (tarikh_mula),
@@ -242,8 +257,6 @@ CREATE TABLE IF NOT EXISTS kehilangan_aset (
     dilaporkan_oleh INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (dilaporkan_oleh) REFERENCES users(id),
-    FOREIGN KEY (diluluskan_oleh) REFERENCES users(id),
     INDEX idx_no_rujukan (no_rujukan),
     INDEX idx_tarikh_kehilangan (tarikh_kehilangan),
     INDEX idx_status (status)
@@ -299,17 +312,11 @@ INSERT INTO lokasi_aset (kod_lokasi, nama_lokasi, keterangan) VALUES
 ON DUPLICATE KEY UPDATE nama_lokasi = VALUES(nama_lokasi);
 
 -- =====================================================
--- STEP 12: Add indexes for foreign keys on enhanced tables
--- =====================================================
--- Note: Run these only after the columns are created
--- ALTER TABLE inventory ADD INDEX idx_lokasi (lokasi_id);
--- ALTER TABLE harta_modal ADD INDEX idx_lokasi (lokasi_id);
-
--- =====================================================
--- STEP 13: Create view for combined asset list
+-- STEP 12: Create view for combined asset list
 -- For easier querying across both asset types
 -- =====================================================
-CREATE OR REPLACE VIEW v_senarai_aset AS
+DROP VIEW IF EXISTS v_senarai_aset;
+CREATE VIEW v_senarai_aset AS
 SELECT
     'Harta Modal' AS jenis_aset,
     h.id,
@@ -351,7 +358,7 @@ FROM inventory i
 LEFT JOIN lokasi_aset l ON i.lokasi_id = l.id;
 
 -- =====================================================
--- STEP 14: Create sequence tables for auto-numbering
+-- STEP 13: Create sequence tables for auto-numbering
 -- =====================================================
 CREATE TABLE IF NOT EXISTS aset_sequence (
     id INT AUTO_INCREMENT PRIMARY KEY,
