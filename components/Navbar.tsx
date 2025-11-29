@@ -297,102 +297,83 @@ export default function Navbar() {
 
                   <li><hr className="dropdown-divider" /></li>
 
-                  {/* Nota Penerimaan - Submenu */}
-                  <li className="dropend">
-                    <a className="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                      <i className="bi bi-arrow-down-circle me-2 text-success"></i>
-                      Nota Penerimaan
-                    </a>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-sumbangan-am">
-                          <i className="bi bi-cash-stack me-2"></i>
-                          Sumbangan Am
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-sumbangan-khas">
-                          <i className="bi bi-gift me-2"></i>
-                          Sumbangan Khas
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-elaun">
-                          <i className="bi bi-person-badge me-2"></i>
-                          Elaun
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-pelaburan">
-                          <i className="bi bi-piggy-bank me-2"></i>
-                          Pelaburan
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-deposit">
-                          <i className="bi bi-safe me-2"></i>
-                          Deposit
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-hasil-sewaan">
-                          <i className="bi bi-building-fill me-2"></i>
-                          Hasil Sewaan
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-penerimaan-lain">
-                          <i className="bi bi-three-dots me-2"></i>
-                          Lain-lain
-                        </Link>
-                      </li>
-                    </ul>
+                  {/* Nota Penerimaan - Flat list with header */}
+                  <li className="dropdown-header text-muted small">
+                    <i className="bi bi-arrow-down-circle me-1 text-success"></i>
+                    Nota Penerimaan
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-sumbangan-am">
+                      Sumbangan Am
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-sumbangan-khas">
+                      Sumbangan Khas
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-elaun">
+                      Elaun
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-pelaburan">
+                      Pelaburan
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-deposit">
+                      Deposit
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-hasil-sewaan">
+                      Hasil Sewaan
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-penerimaan-lain">
+                      Lain-lain
+                    </Link>
                   </li>
 
-                  {/* Nota Pembayaran - Submenu */}
-                  <li className="dropend">
-                    <a className="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                      <i className="bi bi-arrow-up-circle me-2 text-danger"></i>
-                      Nota Pembayaran
-                    </a>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-pentadbiran">
-                          <i className="bi bi-building me-2"></i>
-                          Pentadbiran
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-sumber-manusia">
-                          <i className="bi bi-people me-2"></i>
-                          Sumber Manusia
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-pembangunan">
-                          <i className="bi bi-hammer me-2"></i>
-                          Pembangunan
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-dakwah">
-                          <i className="bi bi-broadcast me-2"></i>
-                          Dakwah
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-khidmat-sosial">
-                          <i className="bi bi-heart me-2"></i>
-                          Khidmat Sosial
-                        </Link>
-                      </li>
-                      <li>
-                        <Link className="dropdown-item" href="/dashboard/reports/nota-pembayaran-aset">
-                          <i className="bi bi-box-seam me-2"></i>
-                          Aset
-                        </Link>
-                      </li>
-                    </ul>
+                  <li><hr className="dropdown-divider" /></li>
+
+                  {/* Nota Pembayaran - Flat list with header */}
+                  <li className="dropdown-header text-muted small">
+                    <i className="bi bi-arrow-up-circle me-1 text-danger"></i>
+                    Nota Pembayaran
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-pembayaran-pentadbiran">
+                      Pentadbiran
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-pembayaran-sumber-manusia">
+                      Sumber Manusia
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-pembayaran-pembangunan">
+                      Pembangunan
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-pembayaran-dakwah">
+                      Dakwah
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-pembayaran-khidmat-sosial">
+                      Khidmat Sosial
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item ps-4" href="/dashboard/reports/nota-pembayaran-aset">
+                      Aset
+                    </Link>
                   </li>
                 </ul>
               </li>
