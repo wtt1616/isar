@@ -1,19 +1,12 @@
 // app/api/whatsapp/webhook/route.ts
-// Twilio WhatsApp Webhook - Receive incoming messages and process unavailability requests
+// Fonnte WhatsApp Webhook - Receive incoming messages and process unavailability requests
 
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
-import twilio from 'twilio';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioWhatsAppNumber = process.env.TWILIO_WHATSAPP_NUMBER || 'whatsapp:+14155238886';
-
-let twilioClient: twilio.Twilio | null = null;
-if (accountSid && authToken) {
-  twilioClient = twilio(accountSid, authToken);
-}
+const FONNTE_API_URL = 'https://api.fonnte.com/send';
+const FONNTE_TOKEN = process.env.FONNTE_TOKEN;
 
 // Prayer times mapping
 const PRAYER_TIMES = ['Subuh', 'Zohor', 'Asar', 'Maghrib', 'Isyak'];
@@ -27,10 +20,10 @@ const PRAYER_ALIASES: { [key: string]: string } = {
   'isya': 'Isyak',
 };
 
-// Format phone number to match database format (remove whatsapp: prefix and normalize)
+// Format phone number to match database format
 function normalizePhoneNumber(phone: string): string[] {
-  // Remove whatsapp: prefix
-  let number = phone.replace('whatsapp:', '').trim();
+  // Remove any non-digit characters except +
+  let number = phone.replace(/[^\d+]/g, '').trim();
 
   // Generate possible formats to match in database
   const formats: string[] = [];
@@ -90,39 +83,66 @@ function formatDateMalay(date: Date): string {
   return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-// Send WhatsApp reply
+// Send WhatsApp reply using Fonnte
 async function sendReply(to: string, message: string): Promise<boolean> {
-  if (!twilioClient) {
-    console.error('Twilio client not initialized');
+  if (!FONNTE_TOKEN) {
+    console.error('Fonnte token not configured');
     return false;
   }
 
+  // Format phone number for Fonnte (remove leading 0, use 60 prefix)
+  let target = to.replace(/[^\d]/g, '');
+  if (target.startsWith('0')) {
+    target = target.substring(1);
+  }
+  if (target.startsWith('60')) {
+    target = target.substring(2);
+  }
+
   try {
-    await twilioClient.messages.create({
-      from: twilioWhatsAppNumber,
-      to: to,
-      body: message
+    const response = await fetch(FONNTE_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': FONNTE_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        target: target,
+        message: message,
+        countryCode: '60'
+      })
     });
-    return true;
+
+    const result = await response.json();
+
+    if (result.status) {
+      console.log(`Fonnte reply sent successfully to ${to}`);
+      return true;
+    } else {
+      console.error(`Fonnte reply failed: ${result.reason || result.detail}`);
+      return false;
+    }
   } catch (error: any) {
-    console.error('Error sending WhatsApp reply:', error.message);
+    console.error('Error sending Fonnte reply:', error.message);
     return false;
   }
 }
 
-// POST - Receive incoming WhatsApp messages from Twilio
+// POST - Receive incoming WhatsApp messages from Fonnte webhook
 export async function POST(request: NextRequest) {
   try {
-    // Parse form data from Twilio
-    const formData = await request.formData();
-    const from = formData.get('From') as string; // whatsapp:+60123456789
-    const body = (formData.get('Body') as string || '').trim();
-    const messageSid = formData.get('MessageSid') as string;
+    // Parse JSON data from Fonnte webhook
+    // Fonnte sends: { "device": "...", "sender": "60123456789", "message": "...", "name": "...", "location": "", "url": "" }
+    const data = await request.json();
 
-    console.log(`[WhatsApp Webhook] Received message from ${from}: "${body}" (SID: ${messageSid})`);
+    const from = data.sender || data.from;
+    const body = (data.message || data.text || '').trim();
+    const senderName = data.name || '';
+
+    console.log(`[WhatsApp Webhook] Received message from ${from} (${senderName}): "${body}"`);
 
     if (!from || !body) {
-      return new NextResponse('OK', { status: 200 });
+      return NextResponse.json({ status: 'ok', message: 'No message content' });
     }
 
     // Find user by phone number
@@ -139,7 +159,7 @@ export async function POST(request: NextRequest) {
       await sendReply(from, `❌ Maaf, nombor telefon anda tidak berdaftar dalam sistem iSAR.
 
 Sila hubungi Head Imam untuk mendaftarkan nombor telefon anda.`);
-      return new NextResponse('OK', { status: 200 });
+      return NextResponse.json({ status: 'ok', message: 'User not found' });
     }
 
     const user = users[0];
@@ -148,7 +168,7 @@ Sila hubungi Head Imam untuk mendaftarkan nombor telefon anda.`);
     // Check if user is imam or bilal
     if (!['imam', 'bilal'].includes(user.role)) {
       await sendReply(from, `❌ Maaf, fungsi ini hanya untuk Imam dan Bilal sahaja.`);
-      return new NextResponse('OK', { status: 200 });
+      return NextResponse.json({ status: 'ok', message: 'Invalid role' });
     }
 
     // Parse message
@@ -156,11 +176,6 @@ Sila hubungi Head Imam untuk mendaftarkan nombor telefon anda.`);
 
     // Check for CUTI/TIDAK HADIR command
     if (upperBody.startsWith('CUTI') || upperBody.startsWith('TIDAK HADIR') || upperBody.startsWith('TIDAKHADIR')) {
-      // Extract date and prayer time
-      // Format: CUTI 2024-12-01 Subuh
-      // Format: CUTI 2024-12-01 semua
-      // Format: CUTI 01/12/2024 Maghrib
-
       const parts = body.split(/\s+/).filter(p => p.length > 0);
 
       if (parts.length < 2) {
@@ -176,7 +191,7 @@ CUTI [tarikh] [waktu solat]
 
 💡 *Waktu solat:* Subuh, Zohor, Asar, Maghrib, Isyak
 💡 *Guna "semua"* untuk semua waktu solat`);
-        return new NextResponse('OK', { status: 200 });
+        return NextResponse.json({ status: 'ok' });
       }
 
       // Find date in the message
@@ -185,7 +200,6 @@ CUTI [tarikh] [waktu solat]
 
       for (let i = 1; i < parts.length; i++) {
         const part = parts[i];
-        // Check if it looks like a date
         if (part.match(/^\d{4}-\d{1,2}-\d{1,2}$/) || part.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/)) {
           dateStr = part;
         } else if (part.toLowerCase() !== 'cuti' && part.toLowerCase() !== 'tidak' && part.toLowerCase() !== 'hadir') {
@@ -203,7 +217,7 @@ CUTI [tarikh] [waktu solat]
 • 2024-12-01
 • 01/12/2024
 • 01-12-2024`);
-        return new NextResponse('OK', { status: 200 });
+        return NextResponse.json({ status: 'ok' });
       }
 
       const date = parseDate(dateStr);
@@ -214,7 +228,7 @@ CUTI [tarikh] [waktu solat]
 • 2024-12-01
 • 01/12/2024
 • 01-12-2024`);
-        return new NextResponse('OK', { status: 200 });
+        return NextResponse.json({ status: 'ok' });
       }
 
       // Determine prayer times to mark as unavailable
@@ -235,7 +249,7 @@ CUTI [tarikh] [waktu solat]
 Subuh, Zohor, Asar, Maghrib, Isyak
 
 💡 *Atau guna "semua"* untuk semua waktu solat`);
-          return new NextResponse('OK', { status: 200 });
+          return NextResponse.json({ status: 'ok' });
         }
       }
 
@@ -244,7 +258,6 @@ Subuh, Zohor, Asar, Maghrib, Isyak
 
       // Insert unavailability records
       const insertedTimes: string[] = [];
-      const alreadyExistsTimes: string[] = [];
 
       for (const prayerTime of prayerTimes) {
         try {
@@ -292,10 +305,10 @@ _Terima kasih kerana memberitahu lebih awal._`;
         await sendReply(from, `❌ Gagal merekodkan cuti. Sila cuba lagi atau hubungi Head Imam.`);
       }
 
-      return new NextResponse('OK', { status: 200 });
+      return NextResponse.json({ status: 'ok' });
     }
 
-    // Check for SENARAI/LIST command - show upcoming unavailability
+    // Check for SENARAI/LIST command
     if (upperBody.startsWith('SENARAI') || upperBody.startsWith('LIST') || upperBody === 'STATUS') {
       const today = new Date().toISOString().split('T')[0];
 
@@ -336,7 +349,7 @@ CUTI [tarikh] [waktu solat]`;
         await sendReply(from, listMessage);
       }
 
-      return new NextResponse('OK', { status: 200 });
+      return NextResponse.json({ status: 'ok' });
     }
 
     // Check for BATAL/CANCEL command
@@ -352,7 +365,7 @@ BATAL [tarikh] [waktu solat]
 📅 *Contoh:*
 • BATAL 2024-12-01 Subuh
 • BATAL 2024-12-01 semua`);
-        return new NextResponse('OK', { status: 200 });
+        return NextResponse.json({ status: 'ok' });
       }
 
       // Find date in the message
@@ -370,13 +383,13 @@ BATAL [tarikh] [waktu solat]
 
       if (!dateStr) {
         await sendReply(from, `❌ Tarikh tidak dijumpai dalam mesej.`);
-        return new NextResponse('OK', { status: 200 });
+        return NextResponse.json({ status: 'ok' });
       }
 
       const date = parseDate(dateStr);
       if (!date || isNaN(date.getTime())) {
         await sendReply(from, `❌ Format tarikh tidak sah: ${dateStr}`);
-        return new NextResponse('OK', { status: 200 });
+        return NextResponse.json({ status: 'ok' });
       }
 
       const dbDate = date.toISOString().split('T')[0];
@@ -394,11 +407,11 @@ BATAL [tarikh] [waktu solat]
           prayerTimes = [prayerStr];
         } else {
           await sendReply(from, `❌ Waktu solat tidak sah: ${prayerStr}`);
-          return new NextResponse('OK', { status: 200 });
+          return NextResponse.json({ status: 'ok' });
         }
       }
 
-      // Delete or update unavailability records
+      // Delete unavailability records
       const cancelledTimes: string[] = [];
 
       for (const prayerTime of prayerTimes) {
@@ -427,7 +440,7 @@ Anda kini tersedia untuk bertugas.`);
         await sendReply(from, `ℹ️ Tiada rekod cuti ditemui untuk tarikh dan waktu tersebut.`);
       }
 
-      return new NextResponse('OK', { status: 200 });
+      return NextResponse.json({ status: 'ok' });
     }
 
     // Default help message
@@ -455,11 +468,11 @@ Assalamualaikum ${user.name}! 👋
    • 2024-12-01
    • 01/12/2024`);
 
-    return new NextResponse('OK', { status: 200 });
+    return NextResponse.json({ status: 'ok' });
 
   } catch (error: any) {
     console.error('[WhatsApp Webhook] Error:', error);
-    return new NextResponse('OK', { status: 200 }); // Always return 200 to Twilio
+    return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
   }
 }
 
@@ -467,6 +480,7 @@ Assalamualaikum ${user.name}! 👋
 export async function GET(request: NextRequest) {
   return NextResponse.json({
     status: 'ok',
+    provider: 'Fonnte',
     message: 'iSAR WhatsApp Webhook is active',
     commands: [
       'CUTI [tarikh] [waktu] - Rekod cuti',
